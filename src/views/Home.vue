@@ -113,7 +113,7 @@ export default {
   font-weight: bold;
   margin: 20px 30px;
   position: sticky;
-  top: 0;
+  top: -30px;
   background-color: #ffffff;
   z-index: 10;
 }
@@ -156,6 +156,9 @@ export default {
   padding-bottom: 10px;
   margin: 10px 30px;
   font-weight: bold;
+  position: sticky;
+  top: -30px;
+  background-color: white;
 }
 
 .introduction-section {
@@ -176,7 +179,7 @@ export default {
   margin: 10px 30px;
   font-weight: bold;
   position: sticky;
-  top: 0;
+  top: -30px;
   background-color: #ffffff;
   z-index: 10;
 }
