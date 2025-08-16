@@ -6,6 +6,7 @@ import CulturalResources from '../views/CulturalResources.vue'
 import CulturalChildIndex from '../views/CulturalChildPage/Index.vue' // 直接导入
 import CulturalChildPicture from '../views/CulturalChildPage/Picture.vue' // 直接导入
 import RegisterView from '@/views/RegisterView.vue'
+import LoginView from '@/views/LoginView.vue'
 
 // 创建动态导入函数，提高代码可维护性
 const loadView = (view) => () => import(`../views/${view}.vue`)
@@ -27,6 +28,11 @@ const router = createRouter({
       path: '/register',
       name: 'register',
       component: RegisterView
+    },
+    {
+      path: '/login',
+      name: 'login',
+      component: LoginView
     },
     {
       path: '/video/:id',

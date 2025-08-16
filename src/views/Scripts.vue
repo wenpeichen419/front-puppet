@@ -1,5 +1,5 @@
 <template>
-  <h2 id="script-main-text">剧本剧目</h2>
+  <h2 class="script-main-text">剧本剧目</h2>
   <div class="scripts-page">
     <div class="script-item" v-for="script in scripts" :key="script.id" @click="goToVideo(script.id)">
       <div class="script-cover">
@@ -46,19 +46,22 @@ export default {
 <style scoped>
 .scripts-page {
   overflow-y: scroll;
-  max-height: 600px;
-  padding-top: 75px;
+  max-height: 560px;
   &::-webkit-scrollbar {
     display: none;
   }
 }
-#script-main-text {
+.script-main-text {
+  margin-top: 150px;
   color: #6e2c1b;
   border-bottom: 2px solid #6e2c1b;
   padding-bottom: 10px;
-  margin-bottom: 30px;
   font-weight: bold;
-  margin-top: 30px; /* 增加标题顶部外边距辅助下移 */
+  font-weight: bold;
+  position: sticky;
+  top: -30px;
+  margin-left: 30px;
+    margin-right:  30px;
 }
 .script-item {
   display: flex;

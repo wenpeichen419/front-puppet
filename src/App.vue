@@ -15,8 +15,10 @@
           />
           <button @click="handleSearch">搜索</button>
         </div>
+        
         <div class="user-actions">
           <button class="upload-btn">上传资源</button>
+          <button class="register-btn" @click="goToRegister">注册</button>
         </div>
       </header>
 
@@ -50,6 +52,9 @@ export default {
     handleSearch() {
       console.log('搜索关键词：', this.searchKeyword)
       // 实际项目中可调用搜索接口
+    },
+    goToRegister() {
+      this.$router.push('/register')
     }
   }
 }
@@ -131,6 +136,21 @@ body {
   cursor: pointer;
   border-radius: 4px;
 }
+.user-actions .register-btn {
+  margin-left: 10px;
+  padding: 8px 18px;
+  font-size:16px !important;
+  background-color: #6e2c1b; /* 深红色 */
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  border-radius: 4px;
+  font-weight: bold;
+  transition: background 0.2s;
+}
+.user-actions .register-btn:hover {
+  background-color: #803c0f; /* 更深的红色 */
+}
 
 /* 导航栏样式 */
 .navbar {
@@ -152,7 +172,7 @@ body {
   padding: 15px 10px;
   color: #fff;
   text-decoration: none;
-  position: relative;
+  /* position: relative; */
   font-size: 20px;
   transition: all 0.3s;
 }
