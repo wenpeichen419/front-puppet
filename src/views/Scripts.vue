@@ -46,8 +46,8 @@ export default {
 <style scoped>
 .scripts-page {
   overflow-y: scroll;
-  max-height: 480px;
-  padding-top: 50px; /* 增加顶部内边距使页面整体下移 */
+  max-height: 600px;
+  padding-top: 75px;
   &::-webkit-scrollbar {
     display: none;
   }
@@ -62,16 +62,16 @@ export default {
 }
 .script-item {
   display: flex;
-  margin-bottom: 25px;
   cursor: pointer;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
+  border: 2px solid #bababa;
+  border-radius: 20px;
   overflow: hidden;
   transition: box-shadow 0.3s ease-in-out, transform 0.3s ease-in-out;
   background-color: #fff;
+  margin: 35px 30px;
 }
 .script-item:hover {
-  box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.532);
   transform: translateY(-5px);
 }
 .script-cover img {

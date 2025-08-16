@@ -4,15 +4,11 @@
       <!-- Image Carousel will go here -->
       <img src="@/assets/home.png" alt="Puppet show" style="width: 100%; border-radius: 8px;">
     </div>
-    <h2 class="news_title">新闻动态</h2>
-    <div>
-      <div>
-        <div class="news-item" v-for="news in newsItems" :key="news.id" @click="goToNewsDetail(news.id)">
-          <h3>{{ news.title }}</h3>
-          <p>{{ news.description }}</p>
-          <div class="read-more">点击查看详情 →</div>
-        </div>
-      </div>
+
+    <!-- 木偶戏简介 -->
+    <h2 class="introduction_title">木偶戏简介</h2>
+    <div class="introduction-section">
+      <p>高州木偶戏，又称“傀儡戏”，是广东高州地区珍贵的传统戏剧艺术。它融合了精湛的木偶雕刻工艺、灵活的操纵技巧、优美的唱腔和丰富的剧目，是中国南方木偶艺术的杰出代表。高州木偶戏以其独特的艺术魅力和深厚的文化底蕴，被列入国家级非物质文化遗产名录，是中华民族优秀传统文化宝库中的一颗璀璨明珠。</p>
     </div>
 
     <!-- 传承人介绍 -->
@@ -33,6 +29,18 @@
         </div>
       </div>
     </div>
+
+    <h2 class="news_title">新闻动态</h2>
+    <div>
+      <div>
+        <div class="news-item" v-for="news in newsItems" :key="news.id" @click="goToNewsDetail(news.id)">
+          <h3>{{ news.title }}</h3>
+          <p>{{ news.description }}</p>
+          <div class="read-more">点击查看详情 →</div>
+        </div>
+      </div>
+    </div>
+
   </div>
 </template>
 
@@ -89,7 +97,7 @@ export default {
 <style scoped>
 #home-page{
   overflow-y: scroll;
-  max-height: 580px;
+  max-height: 780px;
   padding-top: 150px; /* 增加顶部内边距，使页面整体下移 */
   &::-webkit-scrollbar {
     display: none;
@@ -102,23 +110,26 @@ export default {
   color: #6e2c1b;
   border-bottom: 2px solid #6e2c1b;
   padding-bottom: 10px;
-  margin-bottom: 20px;
   font-weight: bold;
+  margin: 20px 30px;
+  position: sticky;
+  top: 0;
+  background-color: #ffffff;
+  z-index: 10;
 }
 .news-item {
   background-color: #fff;
   padding: 20px;
   border-radius: 8px;
-  border: 1px solid #e0e0e0;
+  border: 2px solid #e0e0e0;
   transition: box-shadow 0.3s ease-in-out, transform 0.3s ease-in-out;
-  margin-bottom: 20px;
-  margin-right: 10px;
+  margin: 40px 30px;
   cursor: pointer;
   position: relative;
 }
 .news-item:hover {
-  box-shadow: 0 5px 15px rgba(0,0,0,0.08);
-  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.445);
+  transform: translateY(-4px);
 }
 .news-item h3 {
   margin-top: 0;
@@ -138,26 +149,48 @@ export default {
   margin-top: 10px;
 }
 
+/* 木偶戏简介样式 */
+.introduction_title {
+  color: #6e2c1b;
+  border-bottom: 2px solid #6e2c1b;
+  padding-bottom: 10px;
+  margin: 10px 30px;
+  font-weight: bold;
+}
+
+.introduction-section {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  border: 2px solid #e0e0e0;
+  margin: 40px 30px;
+  color: #666;
+  line-height: 1.8;
+}
+
 /* 传承人介绍样式 */
 .inheritor_title {
   color: #6e2c1b;
   border-bottom: 2px solid #6e2c1b;
   padding-bottom: 10px;
-  margin-bottom: 20px;
-  margin-top: 40px;
+  margin: 10px 30px;
   font-weight: bold;
+  position: sticky;
+  top: 0;
+  background-color: #ffffff;
+  z-index: 10;
 }
 
 .inheritors-section {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 24px;
-  margin-bottom: 40px;
+  margin: 40px 30px;
 }
 
 .inheritor-card {
   background-color: #fff;
-  padding: 25px;
+  padding: 20px;
   border-radius: 12px;
   border: 1px solid #e0e0e0;
   display: flex;

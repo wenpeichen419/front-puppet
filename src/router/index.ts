@@ -5,6 +5,7 @@ import Placeholder from '../views/Placeholder.vue'
 import CulturalResources from '../views/CulturalResources.vue'
 import CulturalChildIndex from '../views/CulturalChildPage/Index.vue' // 直接导入
 import CulturalChildPicture from '../views/CulturalChildPage/Picture.vue' // 直接导入
+import RegisterView from '@/views/RegisterView.vue'
 
 // 创建动态导入函数，提高代码可维护性
 const loadView = (view) => () => import(`../views/${view}.vue`)
@@ -21,6 +22,11 @@ const router = createRouter({
       path: '/scripts',
       name: 'scripts',
       component: Scripts
+    },
+    {
+      path: '/register',
+      name: 'register',
+      component: RegisterView
     },
     {
       path: '/video/:id',
