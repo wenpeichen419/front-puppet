@@ -110,6 +110,7 @@ export default {
   color: #6e2c1b;
   border-bottom: 2px solid #6e2c1b;
   padding-bottom: 10px;
+  padding-top: 10px;
   font-weight: bold;
   margin: 20px 30px;
   position: sticky;
@@ -153,6 +154,7 @@ export default {
 .introduction_title {
   color: #6e2c1b;
   border-bottom: 2px solid #6e2c1b;
+  padding-top: 10px;
   padding-bottom: 10px;
   margin: 10px 30px;
   font-weight: bold;
@@ -175,6 +177,7 @@ export default {
 .inheritor_title {
   color: #6e2c1b;
   border-bottom: 2px solid #6e2c1b;
+  padding-top: 10px;
   padding-bottom: 10px;
   margin: 10px 30px;
   font-weight: bold;

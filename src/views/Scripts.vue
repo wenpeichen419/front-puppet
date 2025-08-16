@@ -37,7 +37,7 @@ export default {
       this.$router.push(`/video/${id}`);
     },
     handleImgError(event) {
-      event.target.src = new URL('../assets/not-found.png', import.meta.url).href;
+      event.target.src = new URL('../assets/image-error.png', import.meta.url).href;
     }
   }
 };
