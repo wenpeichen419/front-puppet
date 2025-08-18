@@ -3,13 +3,13 @@ import Home from '../views/Home.vue'
 import Scripts from '../views/Scripts.vue'
 import Placeholder from '../views/Placeholder.vue'
 import CulturalResources from '../views/CulturalResources.vue'
-import CulturalChildIndex from '../views/CulturalChildPage/Index.vue' // 直接导入
-import CulturalChildPicture from '../views/CulturalChildPage/Picture.vue' // 直接导入
+import CulturalChildIndex from '../views/CulturalChildPage/Index.vue'
+import CulturalChildPicture from '../views/CulturalChildPage/Picture.vue'
 import RegisterView from '@/views/RegisterView.vue'
 import LoginView from '@/views/LoginView.vue'
 
 // 创建动态导入函数，提高代码可维护性
-const loadView = (view) => () => import(`../views/${view}.vue`)
+const loadView = (view: string) => () => import(`../views/${view}.vue`)
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -17,50 +17,32 @@ const router = createRouter({
     {
       path: '/',
       name: 'home',
-      component: Home
+      component: Home,
+      meta: { title: '首页' }
     },
     {
       path: '/scripts',
       name: 'scripts',
-      component: Scripts
-    },
-    {
-      path: '/register',
-      name: 'register',
-      component: RegisterView
-    },
-    {
-      path: '/login',
-      name: 'login',
-      component: LoginView
-    },
-    {
-      path: '/video/:id',
-      name: 'video',
-      component: loadView('Video')
-    },
-    {
-      path: '/news/:id',
-      name: 'news-detail',
-      component: loadView('NewsDetail')
+      component: Scripts,
+      meta: { title: '剧本剧目' }
     },
     {
       path: '/resources',
       name: 'resources',
       component: CulturalResources,
-      props: { pageName: '文化资源' },
+      meta: { title: '文化资源' },
       children: [
         {
           path: '',
           name: 'resources-index',
-          component: CulturalChildIndex, // 使用直接导入
-          props: { pageName: '文化资源首页' }
+          component: CulturalChildIndex,
+          meta: { title: '文化资源首页' }
         },
         {
           path: 'picture',
           name: 'picture-resources',
-          component: CulturalChildPicture, // 使用直接导入
-          props: { pageName: '图片资源' }
+          component: CulturalChildPicture,
+          meta: { title: '图片资源' }
         }
       ]
     },
@@ -68,22 +50,46 @@ const router = createRouter({
       path: '/diy',
       name: 'diy',
       component: Placeholder,
-      props: { pageName: '木偶形象DIY' }
+      meta: { title: '木偶形象DIY' }
     },
     {
       path: '/music',
       name: 'music',
       component: Placeholder,
-      props: { pageName: '曲目点播' }
+      meta: { title: '曲目点播' }
     },
     {
       path: '/chat',
       name: 'chat',
       component: loadView('AiConsult'),
-      props: { pageName: 'AI咨询' }
+      meta: { title: 'AI咨询' }
     },
     {
-      path: '/:pathMatch(.*)*', // 404页面处理
+      path: '/register',
+      name: 'register',
+      component: RegisterView,
+      meta: { title: '用户注册' }
+    },
+    {
+      path: '/login',
+      name: 'login',
+      component: LoginView,
+      meta: { title: '用户登录' }
+    },
+    {
+      path: '/video/:id',
+      name: 'video',
+      component: loadView('Video'),
+      meta: { title: '视频详情' }
+    },
+    {
+      path: '/news/:id',
+      name: 'news-detail',
+      component: loadView('NewsDetail'),
+      meta: { title: '新闻详情' }
+    },
+    {
+      path: '/:pathMatch(.*)*',
       redirect: '/'
     }
   ],
@@ -96,17 +102,22 @@ const router = createRouter({
   }
 })
 
-// 添加路由导航守卫
+// 改进的路由导航守卫
 router.beforeEach((to, from, next) => {
   // 设置页面标题
-  document.title = to.meta.title || to.props?.pageName || '高州木偶戏数字博物馆'
+  document.title = to.meta.title || '高州木偶戏数字博物馆'
+  
+  // 确保始终调用next()
   next()
 })
 
-// 添加错误处理
+// 增强的错误处理
 router.onError((error) => {
   console.error('[路由错误]', error)
   // 可以在这里添加错误上报逻辑
+  if (error.message.includes('Failed to fetch dynamically imported module')) {
+    router.push('/error?type=chunk-loading')
+  }
 })
 
 export default router

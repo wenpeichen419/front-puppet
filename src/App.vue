@@ -17,7 +17,7 @@
         </div>
         
         <div class="user-actions">
-          <button class="upload-btn">上传资源</button>
+          <button class="upload-btn" @click="openUploadDialog">上传资源</button>
           <button class="register-btn" @click="goToRegister">注册</button>
         </div>
       </header>
@@ -37,12 +37,21 @@
 
     <!-- 路由出口：所有页面内容在这里显示 -->
     <router-view class="page-container"></router-view>
+    <upload-dialog ref="uploadDialog"></upload-dialog>
   </div>
 </template>
 
 <script>
+import { RouterLink, RouterView } from 'vue-router'
+import UploadDialog from '@/components/UploadDialog.vue'
+
 export default {
   name: 'App',
+  components: {
+    UploadDialog,
+    RouterLink,
+    RouterView
+  },
   data() {
     return {
       searchKeyword: '' // 搜索关键词绑定
@@ -51,10 +60,13 @@ export default {
   methods: {
     handleSearch() {
       console.log('搜索关键词：', this.searchKeyword)
-      // 实际项目中可调用搜索接口
     },
     goToRegister() {
       this.$router.push('/register')
+    },
+    openUploadDialog() {
+      console.log('上传按钮被点击') 
+      this.$refs.uploadDialog.openDialog()
     }
   }
 }
@@ -97,8 +109,8 @@ body {
 }
 .search {
   display: flex;
-  align-items: center; /* 新增：让子元素垂直居中 */
-  flex: 0 0 400px; /* 固定搜索框宽度 */
+  align-items: center;
+  flex: 0 0 400px;
 }
 .search input {
   padding: 8px 12px;
@@ -107,12 +119,10 @@ body {
   outline: none;
   flex: 1;
   font-size: 16px;
-  /* 新增：让输入框高度和按钮匹配 */
   height: 36px; 
   line-height: 36px; 
 }
 .search button {
-  /* 修改 padding，让垂直方向和输入框一致 */
   padding: 0 15px; 
   font-size: 16px;
   border: 1px solid #803c0f;
@@ -120,7 +130,6 @@ body {
   color: #fff;
   cursor: pointer;
   transition: background-color 0.3s;
-  /* 新增：明确高度，和输入框统一 */
   height: 36px; 
   line-height: 36px; 
 }
@@ -140,7 +149,7 @@ body {
   margin-left: 10px;
   padding: 8px 18px;
   font-size:16px !important;
-  background-color: #6e2c1b; /* 深红色 */
+  background-color: #6e2c1b;
   color: #fff;
   border: none;
   cursor: pointer;
@@ -149,7 +158,7 @@ body {
   transition: background 0.2s;
 }
 .user-actions .register-btn:hover {
-  background-color: #803c0f; /* 更深的红色 */
+  background-color: #803c0f;
 }
 
 /* 导航栏样式 */
@@ -166,17 +175,15 @@ body {
   flex: 1;
   text-align: center;
 }
-/* 路由链接样式 */
 .navbar a {
   display: block;
   padding: 15px 10px;
   color: #fff;
   text-decoration: none;
-  /* position: relative; */
+  position: relative;
   font-size: 20px;
   transition: all 0.3s;
 }
-/* 选中状态（黄色文字+下划线） */
 .navbar a.router-link-active {
   color: #ffd700;
 }
