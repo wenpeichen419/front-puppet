@@ -40,13 +40,16 @@
             :key="index" 
             :class="['message-container', message.type]"
           >
+            <!-- AI消息显示头像 -->
             <img 
               v-if="message.type === 'bot-message'" 
               src="@/assets/AI_logo.png" 
               class="message-avatar"
             >
             <div class="message-bubble">
-              {{ message.content }}
+              <!-- AI加载中显示动画，加载完成显示内容 -->
+              <div v-if="message.isLoading" class="loading-spinner"></div>
+              <div v-else>{{ message.content }}</div>
             </div>
           </div>
         </div>
@@ -60,11 +63,13 @@
             placeholder="快来写下你的问题吧！"
             @keydown.enter.exact.prevent="sendMessage"
             rows="4"
+            :disabled="isSending"
           ></textarea>
           <button 
             class="send-button" 
             :class="{ active: userInput.trim() }"
             @click="sendMessage"
+            :disabled="!userInput.trim() || isSending"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
               <path d="M22 2L11 13M22 2L15 22L11 13M11 13L2 9" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -95,6 +100,17 @@
 
 <script>
 import defaultAvatar from '@/assets/default-avatar.png'
+import axios from 'axios'
+
+// 创建配置好的axios实例
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000', // 修改为使用 import.meta.env
+  headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json'
+  }
+})
+
 export default {
   name: 'AiConsult',
   data() {
@@ -105,127 +121,174 @@ export default {
       showLanguageMenu: false,
       phoneNumber: '13929742831',
       userAvatar: defaultAvatar,
-      currentLanguage: 'zh'
+      currentLanguage: 'zh',
+      sessionId: this.generateSessionId(),
+      isSending: false,
+      connectionError: false
     }
-  },
-  mounted() {
-    
   },
   methods: {
-    sendMessage() {
-  if (!this.userInput.trim()) return;
-  
-  // 添加用户消息 - 保存到临时变量
-  const userMessage = {
-    type: 'user-message',
-    content: this.userInput
-  };
-  this.messages.push(userMessage);
-  
-  // 立即滚动到底部
-  this.scrollToBottom();
-  
-  // 模拟AI渐进式回复 - 先添加AI消息占位
-  const aiResponse = this.getAIResponse(this.userInput);
-  this.messages.push({
-    type: 'bot-message',
-    content: '' // 初始为空
-  });
-  
-  let displayedText = '';
-  let charIndex = 0;
-  
-  const typingEffect = setInterval(() => {
-    if (charIndex < aiResponse.length) {
-      displayedText += aiResponse.charAt(charIndex);
-      // 只更新AI消息，不改变用户消息
-      this.messages[this.messages.length - 1] = {
-        type: 'bot-message',
-        content: displayedText
-      };
-      charIndex++;
-      this.scrollToBottom();
-    } else {
-      clearInterval(typingEffect);
-    }
-  }, 50);
-  
-  this.userInput = '';
-  this.adjustTextareaHeight();
-},
-    
-    getAIResponse(question) {
-      // 这里应该是调用AI接口获取回复
-      // 现在只是模拟一些简单回复
-      const responses = {
-        'zh': {
-          '你好': '你好呀！我是高州木偶戏小博士，有什么可以帮你的吗？',
-          '高州木偶戏起源于哪个朝代': '高州木偶戏起源于明朝万历年间，距今已有400多年历史。',
-          '高州木偶戏有什么特点': '高州木偶戏的特点是木偶造型精美、表演细腻，唱腔以粤剧为主，具有浓郁的地方特色。'
-        },
-        'en': {
-          'hello': 'Hello! I am the Gaozhou Puppet Show expert. How can I help you?',
-          'what is the origin of gaozhou puppet show': 'Gaozhou Puppet Show originated during the Wanli period of the Ming Dynasty, with a history of over 400 years.',
-          'what are the features of gaozhou puppet show': 'Gaozhou Puppet Show features exquisite puppet designs, delicate performances, and Cantonese opera singing style with strong local characteristics.'
-        }
-      }
-      
-      return responses[this.currentLanguage][question] || 
-        (this.currentLanguage === 'zh' ? 
-          '这个问题我还不太清楚，你可以问我关于高州木偶戏的历史、特点或表演形式等问题。这个问题我还不太清楚，你可以问我关于高州木偶戏的历史、特点或表演形式等问题。' : 
-          "I'm not sure about this question. You can ask me about the history, features or performance styles of Gaozhou Puppet Show.")
+    generateSessionId() {
+      const now = new Date()
+      return `chat_${now.getFullYear()}${(now.getMonth()+1).toString().padStart(2,'0')}${now.getDate().toString().padStart(2,'0')}_${Math.random().toString(36).substr(2, 8)}`
     },
-scrollToBottom() {
-  this.$nextTick(() => {
-    const wrapper = document.querySelector('.chat-history-wrapper');
-    const history = document.getElementById('chat-history');
-    if (!wrapper || !history) return;
+
+    async sendMessage() {
+      if (!this.userInput.trim() || this.isSending) return;
+      
+      // 立即清空输入框并禁用按钮
+      const userMessageContent = this.userInput;
+      this.userInput = '';
+      this.isSending = true;
+      this.connectionError = false;
+      
+      // 1. 添加用户消息
+      const userMessage = {
+        type: 'user-message',
+        content: userMessageContent,
+        timestamp: new Date().toLocaleTimeString()
+      };
+      this.messages.push(userMessage);
+      
+      // 2. 立即添加AI消息占位（带头像和加载状态）
+      const botLoadingMessage = {
+        type: 'bot-message',
+        content: '',
+        timestamp: new Date().toLocaleTimeString(),
+        isLoading: true
+      };
+      this.messages.push(botLoadingMessage);
+      this.scrollToBottom();
+      
+      try {
+        const response = await api.post('/api/v1/chat_ask', {
+          question: userMessageContent,
+          session_id: this.sessionId,
+          style: "科普",
+          llm_provider: "qwen2.5:1.5b"
+        }, {
+          timeout: 90000,
+          validateStatus: function (status) {
+            return status < 500;
+          }
+        });
+        
+        // 3. 处理正常响应：更新AI消息（关闭加载+设置内容）
+        const botResponse = response.data?.answer || '已收到您的问题，但未获取到有效回答';
+        // 找到最后一条AI消息并更新
+        const lastBotMsgIndex = this.messages.findLastIndex(msg => msg.type === 'bot-message');
+        if (lastBotMsgIndex !== -1) {
+          this.messages[lastBotMsgIndex] = {
+            type: 'bot-message',
+            content: botResponse,
+            timestamp: new Date().toLocaleTimeString(),
+            isLoading: false
+          };
+          // 执行流式打字效果
+          await this.typeResponse(botResponse, lastBotMsgIndex);
+        }
+      } catch (error) {
+        // 4. 处理错误：更新AI消息为错误提示
+        let errorMsg = '服务暂时不可用';
+        if (error.code === 'ECONNABORTED') {
+          errorMsg = '请求超时，服务器响应时间过长';
+        } else if (error.response) {
+          errorMsg = error.response.data?.detail || errorMsg;
+        } else if (error.request) {
+          errorMsg = '服务器未响应，请检查网络连接';
+        }
+        
+        // 更新最后一条AI消息为错误内容
+        const lastBotMsgIndex = this.messages.findLastIndex(msg => msg.type === 'bot-message');
+        if (lastBotMsgIndex !== -1) {
+          this.messages[lastBotMsgIndex] = {
+            type: 'bot-message',
+            content: errorMsg,
+            timestamp: new Date().toLocaleTimeString(),
+            isLoading: false
+          };
+        }
+      } finally {
+        // 5. 恢复发送状态
+        this.isSending = false;
+        this.scrollToBottom();
+      }
+    },
     
-    // 计算是否需要滚动
-    const shouldScroll = wrapper.scrollTop + wrapper.clientHeight >= 
-                       history.clientHeight - 200; // 200是阈值
-    
-    if (shouldScroll) {
-      wrapper.scrollTo({
-        top: history.scrollHeight,
-        behavior: 'smooth'
+    async typeResponse(fullText, messageIndex) {
+      return new Promise((resolve) => {
+        let displayedText = '';
+        let charIndex = 0;
+        
+        const typingInterval = setInterval(() => {
+          if (charIndex < fullText.length) {
+            displayedText += fullText.charAt(charIndex);
+            this.messages[messageIndex].content = displayedText;
+            charIndex++;
+            this.$forceUpdate();
+            this.scrollToBottom();
+          } else {
+            clearInterval(typingInterval);
+            resolve();
+          }
+        }, 20);
       });
-    }
-  });
-},
+    },
+
+    scrollToBottom() {
+      this.$nextTick(() => {
+        const wrapper = document.querySelector('.chat-history-wrapper');
+        wrapper?.scrollTo({
+          top: wrapper.scrollHeight,
+          behavior: 'smooth'
+        });
+      });
+    },
     
     startNewChat() {
-      this.messages = []
+      this.messages = [];
+      this.sessionId = this.generateSessionId();
+      this.connectionError = false;
     },
     
     toggleUserMenu() {
-      this.showUserMenu = !this.showUserMenu
-      if (this.showUserMenu) {
-        this.showLanguageMenu = false
-      }
+      this.showUserMenu = !this.showUserMenu;
+      this.showLanguageMenu = false;
     },
     
     toggleLanguageMenu() {
-      this.showLanguageMenu = !this.showLanguageMenu
+      this.showLanguageMenu = !this.showLanguageMenu;
+      this.showUserMenu = false;
     },
     
     changeLanguage(lang) {
-      this.currentLanguage = lang
-      this.toggleLanguageMenu()
-      this.toggleUserMenu()
+      this.currentLanguage = lang;
+      this.toggleLanguageMenu();
     },
     
     logout() {
-      // 退出登录逻辑
-      alert('退出登录成功')
-      this.toggleUserMenu()
-    },
-    
-}
+      this.toggleUserMenu();
+    }
+  }
 }
 </script>
 
 <style scoped>
+/* 原有样式保持不变，添加以下加载动画样式 */
+.loading-spinner {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  border: 3px solid rgba(128, 60, 15, 0.3);
+  border-radius: 50%;
+  border-top-color: #803c0f;
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 .title-container {
   display: flex;
   align-items: center;
