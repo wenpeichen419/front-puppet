@@ -104,7 +104,9 @@ import axios from 'axios'
 
 // 创建配置好的axios实例
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000', // 修改为使用 import.meta.env
+  // 1. 开发环境：用 /api 作为代理前缀（需和前端代理配置的前缀匹配）
+  // 2. 生产环境：可通过环境变量配置，这里先适配开发环境
+  baseURL: import.meta.env.VITE_API_BASE_URL || '', 
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json'

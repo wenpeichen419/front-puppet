@@ -5,8 +5,11 @@ import Placeholder from '../views/Placeholder.vue'
 import CulturalResources from '../views/CulturalResources.vue'
 import CulturalChildIndex from '../views/CulturalChildPage/Index.vue'
 import CulturalChildPicture from '../views/CulturalChildPage/Picture.vue'
+import CulturalChildDocument from '../views/CulturalChildPage/Document.vue'
+import CulturalChildVideo from '../views/CulturalChildPage/Video.vue'
 import RegisterView from '@/views/RegisterView.vue'
 import LoginView from '@/views/LoginView.vue'
+import DIY from '../views/PuppetDIY.vue'
 
 // 创建动态导入函数，提高代码可维护性
 const loadView = (view: string) => () => import(`../views/${view}.vue`)
@@ -43,14 +46,26 @@ const router = createRouter({
           name: 'picture-resources',
           component: CulturalChildPicture,
           meta: { title: '图片资源' }
-        }
+        },
+        {
+          path: 'document',
+          name: 'document-resources',
+          component: CulturalChildDocument,
+          meta: { title: '文献资源' }
+        },
+        {
+          path: 'video',
+          name: 'video-resources',
+          component: CulturalChildVideo,
+          meta: { title: '视频资源' }
+        },
       ]
     },
-    {
+   {
       path: '/diy',
       name: 'diy',
-      component: Placeholder,
-      meta: { title: '木偶形象DIY' }
+      component: DIY,
+      props: { pageName: '木偶形象DIY' }
     },
     {
       path: '/music',

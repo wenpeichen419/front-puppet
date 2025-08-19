@@ -1,6 +1,6 @@
 <template>
   <div class="resources-page">
-    <ResourceSidebar />
+    <ResourceSidebar @filter="handleFilter" />
     <router-view class="main-content"></router-view>
   </div>
 </template>
@@ -10,7 +10,17 @@ import ResourceSidebar from './CulturalChildPage/Sidebar.vue'
 
 export default {
   name: 'CulturalResourcesLayout',
-  components: { ResourceSidebar }
+  components: { ResourceSidebar },
+  methods: {
+    handleFilter(params) {
+      // 将筛选参数传递给子组件
+      this.$router.currentRoute.value.matched.forEach(route => {
+        if (route.components.default && route.components.default.methods) {
+          route.components.default.methods.handleSearch(params)
+        }
+      })
+    }
+  }
 }
 </script>
 

@@ -100,24 +100,26 @@
   <style>
   /* 基础样式重置 */
   * {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-  }
-  
-  .container {
-    width: 100%;
-    height: 100%;
-    background-color: #f3f4f6;
-  }
-  
-  .main-layout {
-    display: flex;
-    flex-direction: row;
-    height:82vh;
-    width: 100%;
-  }
+.container {
+  width: 100%;
+  height: 100%;
+  background-color: #f3f4f6;
+  padding-top: 150px; /* 新增：添加顶部内边距，使页面整体下移 */
+  overflow: hidden; /* 防止出现不必要的滚动条 */
+}
+
+/* 其他样式保持不变 */
+.main-layout {
+  display: flex;
+  flex-direction: row;
+  height:82vh;
+  width: 100%;
+}
   
   /* 左侧导航栏 */
   .DIYnav {

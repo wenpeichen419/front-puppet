@@ -132,37 +132,44 @@ export default {
         }
       })
     },
-     async uploadFile() {
-  const formData = new FormData();
-  formData.append('file', this.form.file);
-  formData.append('file_title', this.form.file_title);
-  formData.append('tags', `${this.form.eraTag} ${this.form.genreTag}`);
-  formData.append('description', this.form.description);
+    async uploadFile() {
+      const formData = new FormData();
+      formData.append('file', this.form.file);
+      formData.append('file_title', this.form.file_title);
+      
+      // 正确方式1：直接添加多个同名字段（适用于大多数后端框架）
+      if (this.form.eraTag) formData.append('tags', this.form.eraTag);
+      if (this.form.genreTag) formData.append('tags', this.form.genreTag);
+      
+      // 或者正确方式2：使用数组语法（适用于PHP等后端）
+      // if (this.form.eraTag) formData.append('tags[]', this.form.eraTag);
+      // if (this.form.genreTag) formData.append('tags[]', this.form.genreTag);
+      
+      formData.append('description', this.form.description);
 
-  try {
-    const response = await fetch('/api/v1/file/upload', {
-      method: 'POST',
-      headers: {
-        'Authorization': this.getAuthToken(), // 确保 token 有效
-        // 注意：不要手动设置 Content-Type，浏览器会自动处理 multipart/form-data
-      },
-      body: formData,
-    });
+      try {
+        const response = await fetch('/api/v1/file/upload', {
+          method: 'POST',
+          headers: {
+            'Authorization': this.getAuthToken()
+          },
+          body: formData
+        });
 
-    if (!response.ok) {
-      throw new Error(`HTTP 错误! 状态码: ${response.status}`);
-    }
-
-    const result = await response.json();
-    if (result.code === 200) {
-      this.$message.success('上传成功！');
-      this.dialogVisible = false;
-    }
-  } catch (error) {
-    console.error('上传失败:', error);
-    this.$message.error(`上传失败: ${error.message}`);
-  }
-},
+        const result = await response.json();
+        console.log('上传结果:', result); // 检查返回的数据结构
+        
+        if (result.code === 200) {
+          this.$message.success('上传成功！');
+          this.dialogVisible = false;
+          this.resetForm();
+          this.$emit('upload-success');
+        }
+      } catch (error) {
+        console.error('上传失败:', error);
+        this.$message.error('上传失败');
+      }
+    },
 
     // 获取权限码的方法
     getAuthToken() {
