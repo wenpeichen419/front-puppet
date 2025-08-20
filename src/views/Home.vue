@@ -1,14 +1,19 @@
 <template>
   <div id="home-page">
-    <div class="carousel-container">
-      <!-- Image Carousel will go here -->
-      <img src="@/assets/home.png" alt="Puppet show" style="width: 100%; border-radius: 8px;">
+    <div class="block-text-center">
+      <el-carousel>
+        <el-carousel-item v-for="item in 4" :key="item">
+          <img src="@/assets/home.png" alt="Puppet show" style="width: 100%; border-radius: 8px; height: 100%;">
+        </el-carousel-item>
+      </el-carousel>
     </div>
 
     <!-- 木偶戏简介 -->
     <h2 class="introduction_title">木偶戏简介</h2>
     <div class="introduction-section">
-      <p>高州木偶戏，又称"傀儡戏"，是广东高州地区珍贵的传统戏剧艺术。它融合了精湛的木偶雕刻工艺、灵活的操纵技巧、优美的唱腔和丰富的剧目，是中国南方木偶艺术的杰出代表。高州木偶戏以其独特的艺术魅力和深厚的文化底蕴，被列入国家级非物质文化遗产名录，是中华民族优秀传统文化宝库中的一颗璀璨明珠。</p>
+      <p>
+        高州木偶戏，又称"傀儡戏"，是广东高州地区珍贵的传统戏剧艺术。它融合了精湛的木偶雕刻工艺、灵活的操纵技巧、优美的唱腔和丰富的剧目，是中国南方木偶艺术的杰出代表。高州木偶戏以其独特的艺术魅力和深厚的文化底蕴，被列入国家级非物质文化遗产名录，是中华民族优秀传统文化宝库中的一颗璀璨明珠。
+      </p>
     </div>
 
     <!-- 传承人介绍 -->
@@ -45,6 +50,8 @@
 </template>
 
 <script>
+import { ElMessage } from 'element-plus';
+
 export default {
   name: 'Home',
   data() {
@@ -55,8 +62,45 @@ export default {
         { id: 3, title: '专访木偶戏非遗传承人', description: '我们有幸采访到了国家级非物质文化遗产传承人，听他讲述木偶戏的传承与创新。' },
         { id: 4, title: '进击的巨人完结', description: '米卡萨表示艾伦脸都不要了。' }
       ],
-      inheritors: [],
-      authToken: "bearer ",
+      inheritors: [
+        {
+          id: 1,
+          name: "陈德林",
+          title: "国家级非物质文化遗产传承人",
+          description: "从事木偶戏表演与制作50余年，掌握高州木偶戏传统技艺的全部精髓，代表作品包括《西游记》系列等。",
+          major: ["木偶制作", "表演", "剧本创作"],
+          worked_from: "1970年至今",
+          avatar: "https://sse-market-source-1320172928.cos.ap-guangzhou.myqcloud.com/src/images/resized/1755689316883705962_1718866108467171886610826.jpg"
+        },
+        {
+          id: 2,
+          name: "林巧玲",
+          title: "省级非物质文化遗产传承人",
+          description: "专注木偶声腔演唱与操控技艺研究，善于将传统技艺与现代元素融合，培养了多名优秀接班人。",
+          major: ["声腔演唱", "木偶操控"],
+          worked_from: "1985年至今",
+          avatar: "https://sse-market-source-1320172928.cos.ap-guangzhou.myqcloud.com/src/images/resized/1755689316883705962_1718866108467171886610826.jpg"
+        },
+        {
+          id: 3,
+          name: "黄志强",
+          title: "高州木偶戏艺术团团长",
+          description: "致力于木偶戏的创新与推广，组织多次国内外巡演，为高州木偶戏走向国际舞台做出重要贡献。",
+          major: ["艺术管理", "表演", "推广"],
+          worked_from: "1990年至今",
+          avatar: "https://sse-market-source-1320172928.cos.ap-guangzhou.myqcloud.com/src/images/resized/1755689316883705962_1718866108467171886610826.jpg"
+        },
+        {
+          id: 4,
+          name: "张丽华",
+          title: "木偶戏剧本创作专家",
+          description: "专注于木偶戏剧本的改编与创作，将传统故事与现代价值观相结合，创作了多部深受观众喜爱的作品。",
+          major: ["剧本创作", "理论研究"],
+          worked_from: "1995年至今",
+          avatar: "https://sse-market-source-1320172928.cos.ap-guangzhou.myqcloud.com/src/images/resized/1755689316883705962_1718866108467171886610826.jpg"
+        }
+      ],
+      authToken: "bearer any",
     }
   },
   methods: {
@@ -66,9 +110,9 @@ export default {
     getAuthToken() {
       return this.authToken
     },
-    async fetchInheritors(skip , limit) {
+    async fetchInheritors(skip, limit) {
       try {
-        const response = await fetch('http://localhost:8000/api/v1/master/list?skip='+skip+'&limit='+limit+'search',{
+        const response = await fetch('http://localhost:8000/api/v1/master/list?skip=' + skip + '&limit=' + limit + 'search', {
           method: 'GET',
           headers: {
             // 'Accept': 'application/json',
@@ -76,13 +120,22 @@ export default {
           }
         });
         const result = await response.json();
-        
+
         if (result.code === 200 && result.data && result.data.items) {
-          this.inheritors = result.data.items;
+          // Replace the array instead of pushing to avoid nested arrays
+          // this.inheritors = result.data.items;
+
+          // Or if you want to append to existing data:
+          this.inheritors = [
+            ...this.inheritors,
+            ...result.data.items
+          ];
         } else {
+          ElMessage.error('Failed to fetch inheritors data: ' + (result.message || 'Unknown error'));
           console.error('Failed to fetch inheritors data:', result.message);
         }
       } catch (error) {
+        ElMessage.error('Error fetching inheritors: ' + (error.message || 'Unknown error'));
         console.error('Error fetching inheritors:', error);
       }
     }
@@ -94,17 +147,21 @@ export default {
 </script>
 
 <style scoped>
-#home-page{
+#home-page {
   overflow-y: scroll;
   max-height: 780px;
-  padding-top: 150px; /* 增加顶部内边距，使页面整体下移 */
+  padding-top: 150px;
+
+  /* 增加顶部内边距，使页面整体下移 */
   &::-webkit-scrollbar {
     display: none;
   }
 }
+
 .carousel-container {
   margin-bottom: 30px;
 }
+
 .news_title {
   color: #6e2c1b;
   border-bottom: 2px solid #6e2c1b;
@@ -117,6 +174,7 @@ export default {
   background-color: #ffffff;
   z-index: 10;
 }
+
 .news-item {
   background-color: #fff;
   padding: 20px;
@@ -127,20 +185,24 @@ export default {
   cursor: pointer;
   position: relative;
 }
+
 .news-item:hover {
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.445);
   transform: translateY(-4px);
 }
+
 .news-item h3 {
   margin-top: 0;
   margin-bottom: 10px;
   color: #333;
 }
+
 .news-item p {
   margin: 0;
   color: #666;
   margin-bottom: 10px;
 }
+
 .read-more {
   color: #6e2c1b;
   font-size: 14px;
@@ -206,7 +268,7 @@ export default {
 }
 
 .inheritor-card:hover {
-  box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
   transform: translateY(-3px);
 }
 
@@ -270,10 +332,12 @@ export default {
   .inheritors-section {
     grid-template-columns: 1fr;
   }
+
   .inheritor-card {
     flex-direction: column;
     text-align: center;
   }
+
   .inheritor-details {
     justify-content: center;
   }
