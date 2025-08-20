@@ -27,7 +27,22 @@ const router = createRouter({
       path: '/scripts',
       name: 'scripts',
       component: Scripts,
-      meta: { title: '剧本剧目' }
+      meta: { title: '剧本剧目' },
+      redirect: '/scripts/video',
+      children: [
+        {
+          path: 'video',
+          name: 'scripts-video',
+          component: () => import('../views/ScriptsVideo.vue'),
+          meta: { title: '剧本视频' }
+        },
+        {
+          path: 'text',
+          name: 'scripts-text',
+          component: () => import('../views/ScriptText.vue'),
+          meta: { title: '剧本文本' }
+        }
+      ]
     },
     {
       path: '/resources',
@@ -120,7 +135,7 @@ const router = createRouter({
 // 改进的路由导航守卫
 router.beforeEach((to, from, next) => {
   // 设置页面标题
-  document.title = to.meta.title || '高州木偶戏数字博物馆'
+  document.title = (typeof to.meta.title === 'string' ? to.meta.title : '高州木偶戏数字博物馆');
   
   // 确保始终调用next()
   next()

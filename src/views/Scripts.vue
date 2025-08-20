@@ -1,109 +1,70 @@
+
 <template>
-  <h2 class="script-main-text">剧本剧目</h2>
-  <div class="scripts-page">
-    <div class="script-item" v-for="script in scripts" :key="script.id" @click="goToVideo(script.id)">
-      <div class="script-cover">
-        <img :src="script.coverUrl" :alt="script.title" @error="handleImgError">
-      </div>
-      <div class="script-info">
-        <h3>{{ script.title }}</h3>
-        <p>{{ script.description }}</p>
-        <div style="display: flex; align-items: center; gap: 5px; font-size: 20px;">
-          <img src="@/assets/view.png" alt="播放数" style="width: 20px; height: 20px;"/>
-          <span style="margin-right: 10px;">{{ script.views }}</span>
-          <img src="@/assets/thumbs-up.png" alt="播放数" style="width: 20px; height: 20px;"/>
-          <span style="margin-right: 10px;">{{ script.likes }}</span>
-        </div>
-      </div>
-    </div>
+  <div class="scripts-layout">
+    <nav class="scripts-nav">
+      <ul>
+        <li :class="{active: isActive('video')}" @click="goTo('video')">视频</li>
+        <li :class="{active: isActive('text')}" @click="goTo('text')">剧本</li>
+      </ul>
+    </nav>
+    <main class="scripts-content">
+      <router-view />
+    </main>
   </div>
 </template>
 
-<script>
-export default {
-  name: 'Scripts',
-  data() {
-    return {
-      scripts: [
-        { id: 1, title: '剧目一', description: '这是一个精彩的木偶戏。', coverUrl: 'https://via.placeholder.com/150', views: 1024, likes: 12 },
-        { id: 2, title: '剧目二', description: '一个关于英雄的故事。', coverUrl: 'https://via.placeholder.com/150', views: 512, likes: 12 },
-        { id: 3, title: '剧目三', description: '古老的传说，全新的演绎。', coverUrl: 'https://via.placeholder.com/150', views: 2048, likes: 12 },
-        { id: 4, title: '剧目四', description: '哇哈哈牛奶', coverUrl: 'https://via.placeholder.com/150', views: 2048, likes: 12 }
-      ]
-    };
-  },
-  methods: {
-    goToVideo(id) {
-      this.$router.push(`/video/${id}`);
-    },
-    handleImgError(event) {
-      event.target.src = new URL('../assets/image-error.png', import.meta.url).href;
-    }
-  }
-};
+<script setup lang="ts">
+import { useRouter, useRoute } from 'vue-router';
+const router = useRouter();
+const route = useRoute();
+
+function goTo(type: 'video' | 'text') {
+  router.push(`/scripts/${type}`);
+}
+
+function isActive(type: 'video' | 'text') {
+  return route.path === `/scripts/${type}`;
+}
 </script>
 
+
 <style scoped>
-.scripts-page {
-  overflow-y: scroll;
-  max-height: 560px;
-  &::-webkit-scrollbar {
-    display: none;
-  }
-}
-.script-main-text {
-  margin-top: 150px;
-  color: #6e2c1b;
-  border-bottom: 2px solid #6e2c1b;
-  padding-bottom: 10px;
-  font-weight: bold;
-  font-weight: bold;
-  position: sticky;
-  top: -30px;
-  margin-left: 30px;
-    margin-right:  30px;
-}
-.script-item {
+.scripts-layout {
   display: flex;
+  height: 100%;
+  margin-top: 100px;
+}
+.scripts-nav {
+  width: 160px;
+  background: #f7f7f7;
+  border-right: 1px solid #e0e0e0;
+  padding-top: 60px;
+}
+.scripts-nav ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.scripts-nav li {
+  padding: 18px 0;
+  text-align: center;
   cursor: pointer;
-  border: 2px solid #bababa;
-  border-radius: 20px;
-  overflow: hidden;
-  transition: box-shadow 0.3s ease-in-out, transform 0.3s ease-in-out;
-  background-color: #fff;
-  margin: 35px 30px;
+  color: #6e2c1b;
+  font-weight: bold;
+  font-size: 18px;
+  border-left: 4px solid transparent;
+  transition: background 0.2s, border-color 0.2s;
 }
-.script-item:hover {
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.532);
-  transform: translateY(-5px);
+.scripts-nav li.active {
+  background: #fff3e6;
+  border-left: 4px solid #6e2c1b;
+  color: #b85c38;
 }
-.script-cover img {
-  width: 100px;
-  height: 100px;
-  object-fit: cover;
-  padding: 25px;
-}
-.script-info {
-  padding: 15px 25px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-.script-info h3 {
-  margin-top: 0;
-  margin-bottom: 10px;
-  color: #004d40;
-  font-size: 1.2em;
-}
-.script-info p {
-    margin: 0 0 15px;
-    flex-grow: 1;
-    color: #555;
-}
-.script-info span {
-  font-size: 0.9em;
-  color: #777;
-  align-self: flex-start;
+.scripts-content {
+  flex: 1;
+  padding: 0 30px;
+  background: #fff;
+  /* min-height: 90px; */
 }
 </style>
     
