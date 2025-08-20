@@ -19,9 +19,12 @@
 
 <script setup>
 import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+import { ElMessage } from 'element-plus';
 
 const username = ref('');
 const password = ref('');
+const router = useRouter();
 
 const handleLogin = () => {
   console.log('Username:', username.value);
@@ -50,14 +53,14 @@ const handleLogin = () => {
       // document.cookie = `token=${data.data.token}; path=/; max-age=86400`; // 有效期1天
       router.push('/home');
       
-      alert('登录成功!');
+      ElMessage.success('登录成功!');
     } else {
-      alert('登录失败: ' + (data.message || '未知错误'));
+      ElMessage.error('登录失败: ' + (data.message || '未知错误'));
     }
   })
   .catch(error => {
-    console.error('登录错误:', error);
-    alert('登录失败: ' + error.message);
+    // console.error('登录错误:', error);
+    ElMessage.error('登录失败: ' + error.message);
   });
 };
 </script>
