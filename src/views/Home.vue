@@ -8,7 +8,7 @@
     <!-- 木偶戏简介 -->
     <h2 class="introduction_title">木偶戏简介</h2>
     <div class="introduction-section">
-      <p>高州木偶戏，又称“傀儡戏”，是广东高州地区珍贵的传统戏剧艺术。它融合了精湛的木偶雕刻工艺、灵活的操纵技巧、优美的唱腔和丰富的剧目，是中国南方木偶艺术的杰出代表。高州木偶戏以其独特的艺术魅力和深厚的文化底蕴，被列入国家级非物质文化遗产名录，是中华民族优秀传统文化宝库中的一颗璀璨明珠。</p>
+      <p>高州木偶戏，又称"傀儡戏"，是广东高州地区珍贵的传统戏剧艺术。它融合了精湛的木偶雕刻工艺、灵活的操纵技巧、优美的唱腔和丰富的剧目，是中国南方木偶艺术的杰出代表。高州木偶戏以其独特的艺术魅力和深厚的文化底蕴，被列入国家级非物质文化遗产名录，是中华民族优秀传统文化宝库中的一颗璀璨明珠。</p>
     </div>
 
     <!-- 传承人介绍 -->
@@ -23,8 +23,8 @@
           <p class="inheritor-title">{{ inheritor.title }}</p>
           <p class="inheritor-description">{{ inheritor.description }}</p>
           <div class="inheritor-details">
-            <span class="detail-item">传承年限：{{ inheritor.years }}年</span>
-            <span class="detail-item">主要作品：{{ inheritor.works }}</span>
+            <span class="detail-item" v-if="inheritor.major">主要领域：{{ inheritor.major.join('、') }}</span>
+            <span class="detail-item" v-if="inheritor.worked_from">从业时间：{{ inheritor.worked_from }}</span>
           </div>
         </div>
       </div>
@@ -55,41 +55,40 @@ export default {
         { id: 3, title: '专访木偶戏非遗传承人', description: '我们有幸采访到了国家级非物质文化遗产传承人，听他讲述木偶戏的传承与创新。' },
         { id: 4, title: '进击的巨人完结', description: '米卡萨表示艾伦脸都不要了。' }
       ],
-      inheritors: [
-        {
-          id: 1,
-          name: '李明华',
-          title: '国家级非物质文化遗产传承人',
-          description: '从事木偶戏表演40余年，精通传统剧目表演，致力于木偶戏艺术的传承与创新，培养了众多优秀弟子。',
-          years: 42,
-          works: '《西游记》、《白蛇传》',
-          avatar: '@/assets/puppet.png'
-        },
-        {
-          id: 2,
-          name: '陈秀娟',
-          title: '省级非物质文化遗产传承人',
-          description: '专注于木偶戏唱腔研究，擅长女性角色表演，在木偶戏音乐创新方面贡献突出。',
-          years: 35,
-          works: '《梁祝》、《牡丹亭》',
-          avatar: '@/assets/puppet.png'
-        },
-        {
-          id: 3,
-          name: '王建国',
-          title: '木偶制作工艺大师',
-          description: '掌握传统木偶制作工艺，手工制作的木偶形象生动，工艺精湛，是木偶戏不可缺少的幕后英雄。',
-          years: 30,
-          works: '各类传统木偶制作',
-          avatar: '@/assets/puppet.png'
-        }
-      ]
+      inheritors: [],
+      authToken: "bearer ",
     }
   },
   methods: {
     goToNewsDetail(newsId) {
       this.$router.push(`/news/${newsId}`)
+    },
+    getAuthToken() {
+      return this.authToken
+    },
+    async fetchInheritors(skip , limit) {
+      try {
+        const response = await fetch('http://localhost:8000/api/v1/master/list?skip='+skip+'&limit='+limit+'search',{
+          method: 'GET',
+          headers: {
+            // 'Accept': 'application/json',
+            'Authorization': this.getAuthToken(),
+          }
+        });
+        const result = await response.json();
+        
+        if (result.code === 200 && result.data && result.data.items) {
+          this.inheritors = result.data.items;
+        } else {
+          console.error('Failed to fetch inheritors data:', result.message);
+        }
+      } catch (error) {
+        console.error('Error fetching inheritors:', error);
+      }
     }
+  },
+  mounted() {
+    this.fetchInheritors(0, 10);
   }
 };
 </script>

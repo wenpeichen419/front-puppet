@@ -26,7 +26,39 @@ const password = ref('');
 const handleLogin = () => {
   console.log('Username:', username.value);
   console.log('Password:', password.value);
-  // 在这里添加登录逻辑，例如调用 API
+  
+  fetch('http://localhost:8000/api/v1/auth/login', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      email: username.value,
+      password: password.value
+    })
+  })
+  .then(resp => {
+    if (!resp.ok) {
+      throw new Error('登录失败');
+    }
+    return resp.json();
+  })
+  .then((data) => {
+    console.log('登录成功:', data);
+    if (data.code === 200 && data.data && data.data.token) {
+      // 存储token到cookie中
+      // document.cookie = `token=${data.data.token}; path=/; max-age=86400`; // 有效期1天
+      router.push('/home');
+      
+      alert('登录成功!');
+    } else {
+      alert('登录失败: ' + (data.message || '未知错误'));
+    }
+  })
+  .catch(error => {
+    console.error('登录错误:', error);
+    alert('登录失败: ' + error.message);
+  });
 };
 </script>
 
