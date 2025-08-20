@@ -10,6 +10,7 @@ import CulturalChildVideo from '../views/CulturalChildPage/Video.vue'
 import RegisterView from '@/views/RegisterView.vue'
 import LoginView from '@/views/LoginView.vue'
 import DIY from '../views/PuppetDIY.vue'
+import Player from '../views/VideoPlay.vue'
 
 // 创建动态导入函数，提高代码可维护性
 const loadView = (view: string) => () => import(`../views/${view}.vue`)
@@ -85,8 +86,8 @@ const router = createRouter({
     {
       path: '/music',
       name: 'music',
-      component: Placeholder,
-      meta: { title: '曲目点播' }
+      component: Player,
+      props: { pageName: '曲目点播' }
     },
     {
       path: '/chat',
