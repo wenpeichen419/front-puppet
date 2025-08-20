@@ -62,20 +62,20 @@
         description: '这里显示木偶形象的介绍文字。',
         components: {
           '经典形象': [
-            {name: '形象1', src: '../src/assets/default-doll.png'},
-            {name: '形象2', src: '../src/assets/default-doll.png'}
+            {name: '形象1', src: '../src/assets/男1.png'},
+            {name: '形象2', src: '../src/assets/男2.png'}
           ],
           '盔帽': [
-            {name: '帽子1', src: '../src/assets/default-doll.png'},
+            {name: '帽子1', src: '../src/assets/男冠.png'},
             {name: '帽子2', src: '../src/assets/default-doll.png'}
           ],
           '偶头': [
-            {name: '偶头1', src: 'https://via.placeholder.com/320x384.png?text=偶头1'},
-            {name: '偶头2', src: 'https://via.placeholder.com/320x384.png?text=偶头2'}
+            {name: '偶头1', src: '../src/assets/男妆面1.png'},
+            {name: '偶头2', src: '../src/assets/男妆面2.png'}
           ],
           '服装': [
-            {name: '服装1', src: 'https://via.placeholder.com/320x384.png?text=服装1'},
-            {name: '服装2', src: 'https://via.placeholder.com/320x384.png?text=服装2'}
+            {name: '服装1', src: '../src/assets/男衣1.png'},
+            {name: '服装2', src: '../src/assets/男衣2.png'}
           ]
         }
       }
@@ -100,26 +100,24 @@
   <style>
   /* 基础样式重置 */
   * {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
 
-.container {
-  width: 100%;
-  height: 100%;
-  background-color: #f3f4f6;
-  padding-top: 150px; /* 新增：添加顶部内边距，使页面整体下移 */
-  overflow: hidden; /* 防止出现不必要的滚动条 */
-}
-
-/* 其他样式保持不变 */
-.main-layout {
-  display: flex;
-  flex-direction: row;
-  height:82vh;
-  width: 100%;
-}
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  .container {
+    width: 100%;
+    height: 100%;
+    background-color: #f3f4f6;
+  }
+  
+  .main-layout {
+    display: flex;
+    flex-direction: row;
+    height:82vh;
+    width: 100%;
+  }
   
   /* 左侧导航栏 */
   .DIYnav {
