@@ -61,7 +61,7 @@ export default {
       const fileType = typeMap[type] || 'image';
       
       try {
-        const response = await fetch(`/api/v1/file/list?skip=0&limit=10&file_type=${fileType}`, {
+        const response = await fetch(`http://localhost:8000/api/v1/file/list?skip=0&limit=10&file_type=${fileType}`, {
           method: 'GET',
           headers: {
             'Accept': 'application/json',

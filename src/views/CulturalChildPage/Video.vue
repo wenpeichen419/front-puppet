@@ -249,7 +249,7 @@ export default {
         if (this.era) params.append('tags', this.era)
         if (this.theme) params.append('tags', this.theme)
 
-        const response = await fetch(`/api/v1/file/list?${params.toString()}`, {
+        const response = await fetch(`http://localhost:8000/api/v1/file/list?${params.toString()}`, {
           method: 'GET',
           headers: {
             'Accept': 'application/json',
@@ -294,7 +294,7 @@ export default {
     // 新增：通过info接口获取资源详细信息
     async fetchResourceInfo(fileId) {
       try {
-        const response = await fetch(`/api/v1/file/info/${fileId}`, {
+        const response = await fetch(`http://localhost:8000/api/v1/file/info/${fileId}`, {
           method: 'GET',
           headers: {
             'Accept': 'application/json',
@@ -368,7 +368,7 @@ export default {
         }
         
         // 2. 第一步：调用url接口获取实际下载链接（这一步返回的是JSON）
-        const urlResponse = await fetch(`/api/v1/file/url/${item.id}`, {
+        const urlResponse = await fetch(`http://localhost:8000/api/v1/file/url/${item.id}`, {
           headers: {
             'Authorization': this.getAuthToken(),
             'Accept': 'application/json' // 明确要求返回JSON

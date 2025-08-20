@@ -61,7 +61,7 @@
           <textarea
             v-model="userInput"
             placeholder="快来写下你的问题吧！"
-            @keydown.enter.exact.prevent="sendMessage"
+            @keydown.enter.except.prevent="sendMessage"
             rows="4"
             :disabled="isSending"
           ></textarea>
@@ -100,18 +100,6 @@
 
 <script>
 import defaultAvatar from '@/assets/default-avatar.png'
-import axios from 'axios'
-
-// 创建配置好的axios实例
-const api = axios.create({
-  // 1. 开发环境：用 /api 作为代理前缀（需和前端代理配置的前缀匹配）
-  // 2. 生产环境：可通过环境变量配置，这里先适配开发环境
-  baseURL: import.meta.env.VITE_API_BASE_URL || '', 
-  headers: {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json'
-  }
-})
 
 export default {
   name: 'AiConsult',
@@ -163,20 +151,36 @@ export default {
       this.scrollToBottom();
       
       try {
-        const response = await api.post('/api/v1/chat_ask', {
-          question: userMessageContent,
-          session_id: this.sessionId,
-          style: "科普",
-          llm_provider: "qwen2.5:1.5b"
-        }, {
-          timeout: 90000,
-          validateStatus: function (status) {
-            return status < 500;
-          }
+        // 使用fetch发送请求
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 90000);
+
+        const response = await fetch('http://localhost:8000/api/v1/chat_ask', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify({
+            question: userMessageContent,
+            session_id: this.sessionId,
+            style: "科普",
+            llm_provider: "qwen2.5:1.5b"
+          }),
+          signal: controller.signal
         });
+
+        clearTimeout(timeoutId);
+
+        // 检查响应状态
+        if (!response.ok) {
+          throw new Error(`HTTP错误! 状态码: ${response.status}`);
+        }
+
+        const data = await response.json();
         
         // 3. 处理正常响应：更新AI消息（关闭加载+设置内容）
-        const botResponse = response.data?.answer || '已收到您的问题，但未获取到有效回答';
+        const botResponse = data?.answer || '已收到您的问题，但未获取到有效回答';
         // 找到最后一条AI消息并更新
         const lastBotMsgIndex = this.messages.findLastIndex(msg => msg.type === 'bot-message');
         if (lastBotMsgIndex !== -1) {
@@ -192,11 +196,13 @@ export default {
       } catch (error) {
         // 4. 处理错误：更新AI消息为错误提示
         let errorMsg = '服务暂时不可用';
-        if (error.code === 'ECONNABORTED') {
+        if (error.name === 'AbortError') {
           errorMsg = '请求超时，服务器响应时间过长';
         } else if (error.response) {
           errorMsg = error.response.data?.detail || errorMsg;
-        } else if (error.request) {
+        } else if (error.message.includes('HTTP错误')) {
+          errorMsg = `服务器错误: ${error.message}`;
+        } else {
           errorMsg = '服务器未响应，请检查网络连接';
         }
         

@@ -312,7 +312,7 @@ export default {
         if (this.era) params.append('tags', this.era)
         if (this.theme) params.append('tags', this.theme)
 
-        const response = await fetch(`/api/v1/file/list?${params.toString()}`, {
+        const response = await fetch(`http://localhost:8000/api/v1/file/list?${params.toString()}`, {
           method: 'GET',
           headers: {
             'Accept': 'application/json',

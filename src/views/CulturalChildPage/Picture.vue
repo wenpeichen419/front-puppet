@@ -173,22 +173,24 @@ export default {
     async fetchResources() {
       this.isLoading = true
       try {
+        // 构建tags数组
+        const tags = []
+        if (this.era) tags.push(this.era)
+        if (this.theme) tags.push(this.theme)
+        
         // 先获取所有数据来计算总数
         const totalParams = new URLSearchParams()
-        totalParams.append('limit', 1000) // 设置足够大的limit来获取所有数据
+        totalParams.append('limit', 1000)
         totalParams.append('file_type', 'image')
         
         if (this.title) totalParams.append('file_title', this.title)
         
-        // 处理标签参数
-        const tags = []
-        if (this.era) tags.push(this.era)
-        if (this.theme) tags.push(this.theme)
-        if (tags.length > 0) {
-          totalParams.append('tags', tags.join(','))
-        }
+        // 为每个tag单独添加参数
+        tags.forEach(tag => {
+          totalParams.append('tags', tag)
+        })
 
-        const totalResponse = await fetch(`/api/v1/file/list?${totalParams.toString()}`, {
+        const totalResponse = await fetch(`http://localhost:8000/api/v1/file/list?${totalParams.toString()}`, {
           method: 'GET',
           headers: {
             'Accept': 'application/json',
@@ -213,11 +215,13 @@ export default {
           currentPageParams.append('file_type', 'image')
           
           if (this.title) currentPageParams.append('file_title', this.title)
-          if (tags.length > 0) {
-            currentPageParams.append('tags', tags.join(','))
-          }
+          
+          // 为每个tag单独添加参数
+          tags.forEach(tag => {
+            currentPageParams.append('tags', tag)
+          })
 
-          const currentPageResponse = await fetch(`/api/v1/file/list?${currentPageParams.toString()}`, {
+          const currentPageResponse = await fetch(`http://localhost:8000/api/v1/file/list?${currentPageParams.toString()}`, {
             method: 'GET',
             headers: {
               'Accept': 'application/json',
@@ -257,6 +261,7 @@ export default {
         this.isLoading = false
       }
     },
+
 
     formatDate(dateString) {
       if (!dateString) return '未知日期'
@@ -332,7 +337,7 @@ export default {
 
     async downloadResource(item) {
       try {
-        const response = await fetch(`/api/v1/file/download/${item.id}`, {
+        const response = await fetch(`http://localhost:8000/api/v1/file/download/${item.id}`, {
           headers: {
             'Authorization': this.getAuthToken()
           }

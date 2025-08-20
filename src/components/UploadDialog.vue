@@ -148,7 +148,7 @@ export default {
       formData.append('description', this.form.description);
 
       try {
-        const response = await fetch('/api/v1/file/upload', {
+        const response = await fetch('http://localhost:8000/api/v1/file/upload', {
           method: 'POST',
           headers: {
             'Authorization': this.getAuthToken()
