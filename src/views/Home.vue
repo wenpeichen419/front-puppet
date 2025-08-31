@@ -1,12 +1,10 @@
 <template>
   <div id="home-page">
-    <div class="block-text-center">
-      <el-carousel>
-        <el-carousel-item v-for="item in 4" :key="item">
-          <img src="@/assets/home.png" alt="Puppet show" style="width: 100%; border-radius: 8px; height: 100%;">
-        </el-carousel-item>
-      </el-carousel>
-    </div>
+    <el-carousel style="height: 500px; margin: 10px;">
+      <el-carousel-item v-for="(img, idx) in carouselImages" :key="idx" style="height: 500px;">
+        <img :src="img" alt="Puppet show" style="width: 100%; border-radius: 8px; height: 100%;">
+      </el-carousel-item>
+    </el-carousel>
 
     <!-- 木偶戏简介 -->
     <h2 class="introduction_title">木偶戏简介</h2>
@@ -51,6 +49,9 @@
 
 <script>
 import { ElMessage } from 'element-plus';
+
+// 动态导入图片
+const images = import.meta.glob('@/assets/play*.png', { eager: true, import: 'default' });
 
 export default {
   name: 'Home',
@@ -100,6 +101,11 @@ export default {
           avatar: "https://sse-market-source-1320172928.cos.ap-guangzhou.myqcloud.com/src/images/resized/1755689316883705962_1718866108467171886610826.jpg"
         }
       ],
+      carouselImages: [
+        images['/src/assets/play0.png'],
+        images['/src/assets/play1.png'],
+        images['/src/assets/play2.png'],
+      ],
     }
   },
   methods: {
@@ -148,7 +154,6 @@ export default {
   max-height: 780px;
   padding-top: 150px;
 
-  /* 增加顶部内边距，使页面整体下移 */
   &::-webkit-scrollbar {
     display: none;
   }
