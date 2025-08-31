@@ -50,7 +50,7 @@ const handleLogin = () => {
     console.log('登录成功:', data);
     if (data.code === 200 && data.data && data.data.token) {
       // 存储token到cookie中
-      // document.cookie = `token=${data.data.token}; path=/; max-age=86400`; // 有效期1天
+      localStorage.setItem("cookie", `bearer ${data.data.token}`);
       router.push('/home');
       
       ElMessage.success('登录成功!');

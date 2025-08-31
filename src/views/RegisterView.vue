@@ -46,6 +46,7 @@
 <script setup>
 import { reactive } from 'vue';
 import { useRouter } from 'vue-router';
+import { ElMessage } from 'element-plus';
 
 const formData = reactive({
     username: '',
@@ -59,22 +60,50 @@ const router = useRouter();
 
 const handleRegister = () => {
     if (formData.password !== formData.confirmPassword) {
-        alert('两次输入的密码不一致！');
+        ElMessage.error("两次输入的密码不一致！")
         return;
     }
     console.log('正在注册:', formData);
-    // 在这里添加调用API进行注册的逻辑
-    alert('注册成功！');
+    fetch('http://localhost:8000/api/v1/auth/register/verify', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+                email: formData.email.valueOf(),
+                password: formData.password.valueOf(),
+                code: formData.verificationCode.valueOf()
+        })
+    })
+    .then(resp => {
+        if (resp.ok) {
+            ElMessage.success('注册成功！');
+        }
+    })
 };
 
 const getVerificationCode = () => {
     if (!formData.email) {
-        alert('请输入邮箱地址！');
+        // alert('请输入邮箱地址！');
+        // ElMessage.success('发送成功！');
+        ElMessage.info('请输入邮箱地址！')
         return;
     }
     console.log(`正在向 ${formData.email} 发送验证码`);
-    // 在这里添加调用API发送验证码的逻辑
-    alert('验证码已发送！');
+    fetch('http://localhost:8000/api/v1/auth/register/code', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            email: formData.email.valueOf(),
+        })
+    })
+    .then(resp => {
+        if (resp.ok) {
+            ElMessage.success('发送成功！');
+        }
+    })
 };
 
 const goToLogin = () => {
@@ -84,17 +113,21 @@ const goToLogin = () => {
 
 <style scoped>
 .register-container {
-    margin-top: 140px; /* 原120px，减小高度 */
+    margin-top: 140px;
+    /* 原120px，减小高度 */
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 80vh; /* 保证整体高度适中 */
+    min-height: 80vh;
+    /* 保证整体高度适中 */
 }
 
 .register-box {
     display: flex;
-    width: 800px; /* 原800px，缩小宽度 */
-    min-height: 550px; /* 原高度更大，缩小高度 */
+    width: 800px;
+    /* 原800px，缩小宽度 */
+    min-height: 550px;
+    /* 原高度更大，缩小高度 */
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     border-radius: 20px;
     overflow: hidden;
@@ -103,7 +136,8 @@ const goToLogin = () => {
 
 .left-panel {
     width: 50%;
-    padding: 24px; /* 原30px，缩小内边距 */
+    padding: 24px;
+    /* 原30px，缩小内边距 */
     background: linear-gradient(135deg, #8a4a3a 0%, #6e2c1b 100%);
     color: white;
     display: flex;
@@ -114,17 +148,20 @@ const goToLogin = () => {
 }
 
 .left-panel h1 {
-    font-size: 2rem; /* 原2.5rem，缩小字体 */
+    font-size: 2rem;
+    /* 原2.5rem，缩小字体 */
     margin-bottom: 0.8rem;
 }
 
 .left-panel p {
-    font-size: 1rem; /* 略微缩小 */
+    font-size: 1rem;
+    /* 略微缩小 */
 }
 
 .right-panel {
     width: 50%;
-    padding: 10px 20px; /* 原15px 30px，缩小内边距 */
+    padding: 10px 20px;
+    /* 原15px 30px，缩小内边距 */
     display: flex;
     justify-content: center;
     align-items: center;
@@ -132,19 +169,23 @@ const goToLogin = () => {
 
 .register-form {
     width: 100%;
-    max-width: 280px; /* 原320px，缩小表单宽度 */
+    max-width: 280px;
+    /* 原320px，缩小表单宽度 */
     position: relative;
 }
 
 .register-form h2 {
-    margin-bottom: 18px; /* 原24px */
+    margin-bottom: 18px;
+    /* 原24px */
     text-align: center;
     color: #333;
-    font-size: 1.4rem; /* 原1.8rem */
+    font-size: 1.4rem;
+    /* 原1.8rem */
 }
 
 .form-group {
-    margin-bottom: 12px; /* 原16px */
+    margin-bottom: 12px;
+    /* 原16px */
 }
 
 .verification-code-group {
@@ -177,14 +218,16 @@ const goToLogin = () => {
 
 .form-group label {
     display: block;
-    margin-bottom: 6px; /* 原8px */
+    margin-bottom: 6px;
+    /* 原8px */
     color: #606266;
     font-weight: bold;
 }
 
 .form-group input {
     width: 100%;
-    padding: 10px; /* 原12px */
+    padding: 10px;
+    /* 原12px */
     border: 1px solid #dcdfe6;
     border-radius: 5px;
     box-sizing: border-box;

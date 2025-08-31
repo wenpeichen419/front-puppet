@@ -100,23 +100,19 @@ export default {
           avatar: "https://sse-market-source-1320172928.cos.ap-guangzhou.myqcloud.com/src/images/resized/1755689316883705962_1718866108467171886610826.jpg"
         }
       ],
-      authToken: "bearer any",
     }
   },
   methods: {
     goToNewsDetail(newsId) {
       this.$router.push(`/news/${newsId}`)
     },
-    getAuthToken() {
-      return this.authToken
-    },
     async fetchInheritors(skip, limit) {
       try {
-        const response = await fetch('http://localhost:8000/api/v1/master/list?skip=' + skip + '&limit=' + limit + 'search', {
+        const response = await fetch('http://localhost:8000/api/v1/master/list?skip=' + skip + '&limit=' + limit + '&search', {
           method: 'GET',
           headers: {
-            // 'Accept': 'application/json',
-            'Authorization': this.getAuthToken(),
+            'Content-Type': 'application/json',
+            'Authorization': localStorage.getItem("cookie"),
           }
         });
         const result = await response.json();
