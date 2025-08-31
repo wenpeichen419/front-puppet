@@ -22,15 +22,48 @@
 </template>
 
 <script setup lang="ts">
+import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+
 const router = useRouter();
-const scripts = [
+const scripts = ref([
   { id: 1, title: '剧目一', description: '这是一个精彩的木偶戏。', coverUrl: 'https://via.placeholder.com/150', views: 1024, likes: 12 },
   { id: 2, title: '剧目二', description: '一个关于英雄的故事。', coverUrl: 'https://via.placeholder.com/150', views: 512, likes: 12 },
   { id: 3, title: '剧目三', description: '古老的传说，全新的演绎。', coverUrl: 'https://via.placeholder.com/150', views: 2048, likes: 12 },
   { id: 4, title: '剧目四', description: '哇哈哈牛奶', coverUrl: 'https://via.placeholder.com/150', views: 2048, likes: 12 }
-];
-function goToVideo(id: number) {
+]);
+
+async function fetchScriptsFromBackend(skip = 0, limit = 10) {
+  try {
+    const res = await fetch(`http://localhost:8000/api/v1/file/list?skip=${skip}&limit=${limit}`,  {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': localStorage.getItem("cookie")
+    },
+  });
+    const data = await res.json();
+    if (data.code === 200 && Array.isArray(data.data?.files)) {
+      const backendScripts = data.data.files.map((file: any) => ({
+        id: file.file_id,
+        title: file.file_title,
+        description: file.description,
+        coverUrl: file.file_url,
+        views: file.download_count ?? 0,
+        likes: 0 // 后端没有likes字段，默认0
+      }));
+      scripts.value = scripts.value.concat(backendScripts);
+    }
+  } catch (e) {
+
+  }
+}
+
+onMounted(() => {
+  fetchScriptsFromBackend();
+});
+
+function goToVideo(id: number | string) {
   router.push(`/video/${id}`);
 }
 function handleImgError(event: Event) {

@@ -5,6 +5,7 @@
       <source :src="video.url" type="video/mp4">
       您的浏览器不支持 video 标签。
     </video>
+    {{ video.url }}
     <div class="video-info">
       <p>{{ video.description }}</p>
       <div class="video-stats">
@@ -21,26 +22,56 @@
 </template>
 
 <script>
+import axios from 'axios';
+
+import { ElMessage } from 'element-plus';
 export default {
   name: 'Video',
   data() {
     return {
-      video: null,
-      // 模拟的剧本数据
-      scripts: [
-        { id: 1, title: '剧目一', description: '这是一个精彩的木偶戏。', url: 'http://vjs.zencdn.net/v/oceans.mp4', views: 1024, likes: 12 },
-        { id: 2, title: '剧目二', description: '一个关于英雄的故事。', url: 'http://vjs.zencdn.net/v/oceans.mp4', views: 512, likes: 12 },
-        { id: 3, title: '剧目三', description: '古老的传说，全新的演绎。', url: 'http://vjs.zencdn.net/v/oceans.mp4', views: 2048, likes: 12 },
-        { id: 4, title: '剧目四', description: '哇哈哈牛奶', url: 'http://vjs.zencdn.net/v/oceans.mp4', views: 2048, likes: 12 }
-      ]
+      video: null
     };
   },
   created() {
     const videoId = this.$route.params.id;
-    this.video = this.scripts.find(script => script.id == videoId);
-    if (!this.video) {
-      this.$router.push('/placeholder'); // 如果找不到视频，则跳转到占位符页面
-    }
+    axios.get(`http://localhost:8000/api/v1/file/info/${videoId}`, {
+      headers: {
+        Authorization: localStorage.getItem("cookie")
+      }
+    })
+      .then(response => {
+        if (response.data && response.data.code === 200 && response.data.data) {
+          const file = response.data.data;
+          this.video = {
+            id: file.file_id,
+            title: file.file_title,
+            description: file.description,
+            url: file.file_url,
+            views: file.download_count, 
+            likes: 0 
+          };
+        } else {
+          this.video = {
+            id: 0,
+            title: "hello",
+            description: "hello",
+            url: 'http://vjs.zencdn.net/v/oceans.mp4',
+            views: 0, 
+            likes: 0 
+          };
+        }
+      })
+      .catch(() => {
+        this.video = {
+            id: 0,
+            title: "hello",
+            description: "hello",
+            url: 'http://vjs.zencdn.net/v/oceans.mp4',
+            views: 0, 
+            likes: 0 
+          };
+          ElMessage.error("无法获取信息！")
+      });
   },
   methods: {
     goBack() {
@@ -55,13 +86,14 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding-top: 120px;
+  padding-top: 140px;
 }
 #video-main-text {
   color: #6e2c1b;
   border-bottom: 2px solid #6e2c1b;
   padding-bottom: 5px;
   font-weight: bold;
+  margin-bottom: 20px;
 }
 .video-player {
   width: auto;
