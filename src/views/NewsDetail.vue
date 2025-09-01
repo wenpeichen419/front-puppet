@@ -31,40 +31,8 @@ export default {
   data() {
     return {
       news: null,
-      newsData: [
-        { 
-          id: 1, 
-          title: '高州木偶戏在全国巡演中大获成功', 
-          description: '本次巡演历时三个月，足迹遍布全国十余个城市，受到了各地观众的热烈欢迎。',
-          content: '高州木偶戏作为国家级非物质文化遗产，此次全国巡演活动意义重大。从北京到上海，从广州到深圳，木偶戏演员们用精湛的技艺和深厚的文化底蕴征服了各地观众。特别是在北京国家大剧院的演出，更是座无虚席，掌声雷动。许多观众表示，这是他们第一次近距离观看木偶戏表演，被其独特的艺术魅力深深震撼。巡演不仅展示了高州木偶戏的艺术价值，也为传统文化的传承和发展开辟了新的途径。',
-          publishDate: '2024-12-15',
-          author: '文化记者 张明'
-        },
-        { 
-          id: 2, 
-          title: '新剧目《三打白骨精》即将上演', 
-          description: '经过精心打磨，经典剧目《三打白骨精》将以全新的面貌与观众见面，敬请期待。',
-          content: '经典名著《西游记》中的"三打白骨精"情节深入人心，如今将通过高州木偶戏的形式重新演绎。剧团在保持传统木偶戏特色的基础上，融入了现代舞台技术，采用声光电一体化的舞台效果，让白骨精的变幻莫测更加生动逼真。孙悟空的72变、猪八戒的憨态可掬、唐僧的慈悲为怀，都将通过精美的木偶形象完美呈现。该剧目预计在春节期间首演，届时将为观众带来一场视觉与听觉的双重盛宴。',
-          publishDate: '2024-12-20',
-          author: '剧团宣传部'
-        },
-        { 
-          id: 3, 
-          title: '专访木偶戏非遗传承人', 
-          description: '我们有幸采访到了国家级非物质文化遗产传承人，听他讲述木偶戏的传承与创新。',
-          content: '李师傅从事木偶戏表演已有40余年，是国家级非物质文化遗产传承人。在采访中，他深情地回忆起初学木偶戏的岁月："那时候条件艰苦，但对艺术的热爱让我坚持下来。"他认为，传统艺术要想传承下去，既要保持其原有的文化内核，也要与时俱进，融入现代元素。近年来，他积极参与木偶戏进校园活动，培养年轻一代对传统文化的兴趣。他说："只有让更多的年轻人了解和喜爱木偶戏，这门艺术才能真正传承下去。"',
-          publishDate: '2024-12-25',
-          author: '文化频道 王丽'
-        },
-        { 
-          id: 4, 
-          title: '进击的巨人完结', 
-          description: '米卡萨表示艾伦脸都不要了。',
-          content: '玩原神玩多了导致的',
-          publishDate: '2024-12-30',
-          author: '你的 大爹'
-        }
-      ]
+      loading: false,
+      error: null
     }
   },
   created() {
@@ -76,9 +44,33 @@ export default {
     }
   },
   methods: {
-    loadNews() {
-      const newsId = parseInt(this.$route.params.id)
-      this.news = this.newsData.find(item => item.id === newsId)
+    async loadNews() {
+      this.news = null
+      this.error = null
+      this.loading = true
+      const newsId = this.$route.params.id
+      try {
+        const response = await fetch(`http://8.134.51.50:6060/api/v1/article/info/${newsId}`)
+        const result = await response.json()
+        if (result.code === 200 && result.data) {
+          // 适配字段
+          this.news = {
+            id: result.data.id,
+            title: result.data.title,
+            description: result.data.description,
+            content: result.data.content,
+            publishDate: result.data.created_at?.split('T')[0],
+            author: result.data.author
+          }
+        } else {
+          this.news = null
+        }
+      } catch (e) {
+        this.error = '加载新闻失败'
+        this.news = null
+      } finally {
+        this.loading = false
+      }
     },
     goBack() {
       this.$router.push('/')

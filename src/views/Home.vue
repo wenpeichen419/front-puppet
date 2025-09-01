@@ -136,10 +136,38 @@ export default {
         ElMessage.error('Error fetching inheritors: ' + (error.message || 'Unknown error'));
         console.error('Error fetching inheritors:', error);
       }
+    },
+    async fetchNewsItems(skip, limit) {
+      try {
+        const response = await fetch('http://8.134.51.50:6060/api/v1/article/list?skip=' + skip + '&limit=' + limit, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': localStorage.getItem("cookie"),
+          }
+        });
+        const result = await response.json();
+        if (result.code === 200 && result.data && Array.isArray(result.data.articles)) {
+          // 合并后端新闻到现有 newsItems
+          this.newsItems = [
+            ...result.data.articles.map(item => ({
+              id: item.id,
+              title: item.title,
+              description: item.description
+            })),
+            ...this.newsItems
+          ];
+        } else {
+          ElMessage.error('Failed to fetch news: ' + (result.message || 'Unknown error'));
+        }
+      } catch (error) {
+        ElMessage.error('Error fetching news: ' + (error.message || 'Unknown error'));
+      }
     }
   },
   mounted() {
     this.fetchInheritors(0, 10);
+    this.fetchNewsItems(0, 10);
   }
 };
 </script>
