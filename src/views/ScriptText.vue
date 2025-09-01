@@ -27,49 +27,57 @@
                 <div class="author-info">作者: {{ currentScript.author }}</div>
             </div>
 
-            <div class="detail-content">
-                <p v-for="(paragraph, index) in currentScript.content.split('\n')" :key="index" class="paragraph">
-                    {{ paragraph }}
-                </p>
+            <div class="detail-content images-content">
+                <img
+                    v-for="(img, idx) in currentScript.images"
+                    :key="idx"
+                    :src="img"
+                    class="script-image"
+                    :alt="currentScript.images"
+                />
+                <div v-if="!currentScript.images || currentScript.images.length === 0" style="color:#888;">暂无相关剧本图片</div>
             </div>
         </div>
     </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 
-// 示例剧本数据
-const scripts = ref([
-    {
-        id: 1,
-        title: '木偶奇遇记',
-        author: '张三',
-        content: '从前有一个小木偶，名叫匹诺曹。他是由一位名叫杰佩托的木匠制作的。杰佩托非常希望有一个儿子，所以蓝色仙女赋予了匹诺曹生命。\n匹诺曹必须证明自己是勇敢、诚实和无私的，才能成为一个真正的男孩。他遇到了许多困难和诱惑，但最终通过自己的努力和善良获得了真正的生命。'
-    },
-    {
-        id: 2,
-        title: '皮影戏之传统故事',
-        author: '李四',
-        content: '在中国古代，有一种独特的艺术形式，那就是皮影戏。皮影戏使用皮革制作的人物剪影，通过灯光投射在白色幕布上演绎故事。\n这个故事讲述了一位年轻艺人如何学习皮影戏的技艺，并将这一传统文化传承下去的感人历程。'
-    },
-    {
-        id: 3,
-        title: '提线木偶师',
-        author: '王五',
-        content: '一位老木偶师在他生命的最后时光里，决定将自己毕生的技艺传授给一个有天赋的年轻人。这个年轻人从一开始的不屑一顾，到逐渐被木偶艺术的魅力所吸引。\n通过木偶表演，他们共同讲述了一个关于友情、勇气和坚持的故事，感动了无数观众。'
-    },
-    {
-        id: 4,
-        title: '纸片人的世界',
-        author: '赵六',
-        content: '在一个由纸片构成的奇幻世界里，居住着各种各样的纸片人。他们有自己的社会、规则和文化。\n这个故事讲述了一个普通纸片人不甘平凡，追求梦想的冒险之旅。在旅途中，他结识了许多朋友，也面临了许多挑战，最终找到了自己的人生价值。'
-    }
-]);
+// 剧本数据
+const scripts = ref<any[]>([]);
 
 // 状态管理
 const showDetail = ref(false);
 const currentScript = ref<any>({});
+
+async function fetchScripts(skip = 0, limit = 20) {
+    const url = `http://8.134.51.50:6060/api/v1/file/list?skip=${skip}&limit=${limit}&file_type=image`;
+    try {
+        const res = await fetch(url, {
+            method: "GET",
+            headers: {
+                'Authorization': localStorage.getItem("cookie")
+            }
+        });
+        const data = await res.json();
+        if (data.code === 200 && data.data && Array.isArray(data.data.files)) {
+            scripts.value = data.data.files
+                .filter((f: any) => Array.isArray(f.tags) && f.tags.includes('test'))
+                .map((f: any, idx: number) => ({
+                    id: f.file_id || idx,
+                    title: f.file_title || '无标题',
+                    content: f.description || 'none',
+                    author: f.uploaded_by || 'none',
+                    images: [f.file_url]
+                }));
+        } else {
+            scripts.value = [];
+        }
+    } catch (e) {
+        scripts.value = [];
+    }
+}
 
 // 显示剧本详情
 const showScriptDetail = (script: any) => {
@@ -84,9 +92,15 @@ const backToList = () => {
 
 // 截断文本
 const truncateText = (text: string, length: number) => {
+    if (!text) return '';
     if (text.length <= length) return text;
     return text.substring(0, length) + '...';
 };
+
+// 页面加载时获取剧本
+onMounted(() => {
+    fetchScripts(0, 50);
+});
 </script>
 
 <style scoped>
@@ -242,9 +256,19 @@ const truncateText = (text: string, length: number) => {
     color: #3a1a13;
 }
 
-.paragraph {
-    margin-bottom: 16px;
-    text-indent: 2em;
+.images-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+}
+
+.script-image {
+    max-width: 100%;
+    max-height: 80vh;
+    border-radius: 8px;
+    box-shadow: 0 2px 12px rgba(110, 44, 27, 0.12);
+    margin-bottom: 12px;
 }
 
 @media (max-width: 768px) {

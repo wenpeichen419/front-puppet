@@ -10,9 +10,9 @@
           <h3>{{ script.title }}</h3>
           <p>{{ script.description }}</p>
           <div style="display: flex; align-items: center; gap: 5px; font-size: 20px;">
-            <img src="@/assets/view.png" alt="播放数" style="width: 20px; height: 20px;"/>
+            <img src="@/assets/view.png" alt="播放数" style="width: 20px; height: 20px;" />
             <span style="margin-right: 10px;">{{ script.views }}</span>
-            <img src="@/assets/thumbs-up.png" alt="播放数" style="width: 20px; height: 20px;"/>
+            <img src="@/assets/thumbs-up.png" alt="播放数" style="width: 20px; height: 20px;" />
             <span style="margin-right: 10px;">{{ script.likes }}</span>
           </div>
         </div>
@@ -35,13 +35,13 @@ const scripts = ref([
 
 async function fetchScriptsFromBackend(skip = 0, limit = 10) {
   try {
-    const res = await fetch(`http://8.134.51.50:6060/api/v1/file/list?skip=${skip}&limit=${limit}&file_type=video`,  {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': localStorage.getItem("cookie")
-    },
-  });
+    const res = await fetch(`http://8.134.51.50:6060/api/v1/file/list?skip=${skip}&limit=${limit}&file_type=video`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': localStorage.getItem("cookie")
+      },
+    });
     const data = await res.json();
     if (data.code === 200 && Array.isArray(data.data?.files)) {
       const backendScripts = data.data.files.map((file: any) => ({
@@ -81,12 +81,14 @@ function handleImgError(event: Event) {
   position: sticky;
   top: -30px;
   margin-left: 30px;
-  margin-right:  30px;
+  margin-right: 30px;
 }
+
 .scripts-page {
   overflow-y: scroll;
   max-height: 560px;
 }
+
 .script-item {
   display: flex;
   cursor: pointer;
@@ -97,33 +99,39 @@ function handleImgError(event: Event) {
   background-color: #fff;
   margin: 35px 30px;
 }
+
 .script-item:hover {
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.532);
   transform: translateY(-5px);
 }
+
 .script-cover img {
   width: 100px;
   height: 100px;
   object-fit: cover;
   padding: 25px;
 }
+
 .script-info {
   padding: 15px 25px;
   display: flex;
   flex-direction: column;
   justify-content: center;
 }
+
 .script-info h3 {
   margin-top: 0;
   margin-bottom: 10px;
   color: #004d40;
   font-size: 1.2em;
 }
+
 .script-info p {
   margin: 0 0 15px;
   flex-grow: 1;
   color: #555;
 }
+
 .script-info span {
   font-size: 0.9em;
   color: #777;
