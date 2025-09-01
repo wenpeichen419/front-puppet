@@ -114,7 +114,7 @@ export default {
     },
     async fetchInheritors(skip, limit) {
       try {
-        const response = await fetch('http://localhost:8000/api/v1/master/list?skip=' + skip + '&limit=' + limit + '&search', {
+        const response = await fetch('http://8.134.51.50:6060/api/v1/master/list?skip=' + skip + '&limit=' + limit + '&search', {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',

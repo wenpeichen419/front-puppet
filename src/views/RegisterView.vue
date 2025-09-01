@@ -21,7 +21,14 @@
                             <label for="verificationCode">验证码</label>
                             <div class="verification-code-group">
                                 <input type="text" id="verificationCode" v-model="formData.verificationCode" required>
-                                <button type="button" @click="getVerificationCode" class="get-code-btn">获取验证码</button>
+                                <button
+                                    type="button"
+                                    @click="getVerificationCode"
+                                    class="get-code-btn"
+                                    :disabled="countdown > 0"
+                                >
+                                    {{ countdown > 0 ? `${countdown}s后重试` : '获取验证码' }}
+                                </button>
                             </div>
                         </div>
                         <div class="form-group">
@@ -44,7 +51,7 @@
 </template>
 
 <script setup>
-import { reactive } from 'vue';
+import { reactive, ref, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 
@@ -58,13 +65,16 @@ const formData = reactive({
 
 const router = useRouter();
 
+const countdown = ref(0);
+let timer = null;
+
 const handleRegister = () => {
     if (formData.password !== formData.confirmPassword) {
-        ElMessage.error("两次输入的密码不一致！")
+        ElMessage.error("两次输入的密码不一致！");
         return;
     }
     console.log('正在注册:', formData);
-    fetch('http://localhost:8000/api/v1/auth/register/verify', {
+    fetch('http://8.134.51.50:6060/api/v1/auth/register/verify', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -75,22 +85,41 @@ const handleRegister = () => {
                 code: formData.verificationCode.valueOf()
         })
     })
-    .then(resp => {
-        if (resp.ok) {
-            ElMessage.success('注册成功！');
+    .then(resp => resp.json())
+    .then(data => {
+        if (data.code !== 200){
+            ElMessage.error(data.message);
         }
+        else {
+            ElMessage.success("注册成功！");
+            router.push('/login');
+        }
+    })
+    .catch(err => {
+        ElMessage.error("注册失败！");
     })
 };
 
 const getVerificationCode = () => {
     if (!formData.email) {
-        // alert('请输入邮箱地址！');
-        // ElMessage.success('发送成功！');
         ElMessage.info('请输入邮箱地址！')
         return;
     }
+    if (countdown.value > 0) {
+        return;
+    }
+    // 启动倒计时
+    countdown.value = 60;
+    timer = setInterval(() => {
+        countdown.value--;
+        if (countdown.value <= 0) {
+            clearInterval(timer);
+            timer = null;
+        }
+    }, 1000);
+
     console.log(`正在向 ${formData.email} 发送验证码`);
-    fetch('http://localhost:8000/api/v1/auth/register/code', {
+    fetch('http://8.134.51.50:6060/api/v1/auth/register/code', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -99,12 +128,24 @@ const getVerificationCode = () => {
             email: formData.email.valueOf(),
         })
     })
-    .then(resp => {
-        if (resp.ok) {
-            ElMessage.success('发送成功！');
+    .then(resp => resp.json())
+    .then(data => {
+        if (data.code !== 200){
+            ElMessage.error(data.message);
+        }
+        else {
+            ElMessage.success("发送成功！");
         }
     })
+    .catch(err => {
+        ElMessage.error('发送失败！');
+    })
 };
+
+// 防止组件卸载时计时器未清理
+onUnmounted(() => {
+    if (timer) clearInterval(timer);
+});
 
 const goToLogin = () => {
     router.push('/login');
@@ -114,7 +155,6 @@ const goToLogin = () => {
 <style scoped>
 .register-container {
     margin-top: 140px;
-    /* 原120px，减小高度 */
     display: flex;
     justify-content: center;
     align-items: center;
@@ -149,13 +189,11 @@ const goToLogin = () => {
 
 .left-panel h1 {
     font-size: 2rem;
-    /* 原2.5rem，缩小字体 */
     margin-bottom: 0.8rem;
 }
 
 .left-panel p {
     font-size: 1rem;
-    /* 略微缩小 */
 }
 
 .right-panel {
