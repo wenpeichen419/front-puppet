@@ -35,7 +35,7 @@ const scripts = ref([
 
 async function fetchScriptsFromBackend(skip = 0, limit = 10) {
   try {
-    const res = await fetch(`http://localhost:8000/api/v1/file/list?skip=${skip}&limit=${limit}`,  {
+    const res = await fetch(`http://8.134.51.50:6060/api/v1/file/list?skip=${skip}&limit=${limit}`,  {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
