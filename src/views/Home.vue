@@ -124,10 +124,6 @@ export default {
         const result = await response.json();
 
         if (result.code === 200 && result.data && result.data.items) {
-          // Replace the array instead of pushing to avoid nested arrays
-          // this.inheritors = result.data.items;
-
-          // Or if you want to append to existing data:
           this.inheritors = [
             ...this.inheritors,
             ...result.data.items
