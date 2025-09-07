@@ -204,6 +204,8 @@ onMounted(() => {
     box-shadow: 0 6px 20px rgba(110, 44, 27, 0.1);
     animation: fadeIn 0.4s ease-in-out;
     border-left: 5px solid #6e2c1b;
+    max-height: 500px;
+    overflow-y: scroll;
 }
 
 @keyframes fadeIn {
