@@ -175,7 +175,7 @@ export default {
 <style scoped>
 #home-page {
   overflow-y: scroll;
-  max-height: 780px;
+  max-height: 870px;
   padding-top: 150px;
 
   &::-webkit-scrollbar {
