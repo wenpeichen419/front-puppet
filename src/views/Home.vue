@@ -1,6 +1,6 @@
 <template>
   <div id="home-page">
-    <el-carousel style="height: 500px; margin: 10px;">
+    <el-carousel style="height: 500px; margin: 20px;">
       <el-carousel-item v-for="(img, idx) in carouselImages" :key="idx" style="height: 500px;">
         <img :src="img" alt="Puppet show" style="width: 100%; border-radius: 8px; height: 100%;">
       </el-carousel-item>

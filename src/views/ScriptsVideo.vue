@@ -27,10 +27,10 @@ import { useRouter } from 'vue-router';
 
 const router = useRouter();
 const scripts = ref([
-  { id: 1, title: '剧目一', description: '这是一个精彩的木偶戏。', coverUrl: 'https://via.placeholder.com/150', views: 1024, likes: 12 },
-  { id: 2, title: '剧目二', description: '一个关于英雄的故事。', coverUrl: 'https://via.placeholder.com/150', views: 512, likes: 12 },
-  { id: 3, title: '剧目三', description: '古老的传说，全新的演绎。', coverUrl: 'https://via.placeholder.com/150', views: 2048, likes: 12 },
-  { id: 4, title: '剧目四', description: '哇哈哈牛奶', coverUrl: 'https://via.placeholder.com/150', views: 2048, likes: 12 }
+  { id: 1, title: '三国演义·空城计', description: '诸葛亮巧设空城计，退敌保西城，智谋传千古。', coverUrl: new URL('../assets/puppet-default.jpeg', import.meta.url).href, views: 1024, likes: 12 },
+  { id: 2, title: '白蛇传·断桥相会', description: '许仙白娘子西湖断桥重逢，情深意切感天动地。', coverUrl: new URL('../assets/puppet-default.jpeg', import.meta.url).href, views: 512, likes: 12 },
+  { id: 3, title: '杨家将·穆桂英挂帅', description: '巾帼英雄穆桂英临危受命，挂帅出征保家卫国。', coverUrl: new URL('../assets/puppet-default.jpeg', import.meta.url).href, views: 2048, likes: 12 },
+  { id: 4, title: '梁山伯与祝英台', description: '化蝶双飞传佳话，凄美爱情动人心弦。', coverUrl: new URL('../assets/puppet-default.jpeg', import.meta.url).href, views: 2048, likes: 12 }
 ]);
 
 async function fetchScriptsFromBackend(skip = 0, limit = 10) {
@@ -67,7 +67,7 @@ function goToVideo(id: number | string) {
   router.push(`/video/${id}`);
 }
 function handleImgError(event: Event) {
-  (event.target as HTMLImageElement).src = new URL('../assets/image-error.png', import.meta.url).href;
+  (event.target as HTMLImageElement).src = new URL('../assets/puppet-default.jpeg', import.meta.url).href;
 }
 </script>
 
@@ -106,8 +106,8 @@ function handleImgError(event: Event) {
 }
 
 .script-cover img {
-  width: 100px;
-  height: 100px;
+  width: 130px;
+  height: 130px;
   object-fit: cover;
   padding: 25px;
 }
