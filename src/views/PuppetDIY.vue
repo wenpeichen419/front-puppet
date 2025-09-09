@@ -59,7 +59,7 @@ export default {
       activeTab: null,
       showRightPanel: false,
       mainImage: '../src/assets/puppet.png',
-      description: '这里显示木偶形象的介绍文字。',
+      description: '高凉太守冯宝，冯宝性格沉稳正直，常以文官形象出现，身着长袍、头戴冠帽，体现其为地方长官的身份。',
       components: {
         '经典形象': [
           {name: '形象1', src: '../src/assets/男1.png'},

@@ -91,7 +91,7 @@
           >
             <div class="card-image-container">
               <img 
-                :src="`https://picsum.photos/seed/${track.id}/400/200`" 
+                :src="`https://th.bing.com/th/id/R.82829ff601dc35a40bff024762b8d9aa?rik=J%2fg71SJEy7g6iA&riu=http%3a%2f%2fwww.qb.gd.gov.cn%2fimg%2f0%2f14%2f14346%2f163451.jpg&ehk=XhU7kX4pjqcUfyjRCEYce3mlATPEvSTqAPAf7MmyxVQ%3d&risl=&pid=ImgRaw&r=0`" 
                 :alt="track.title"
                 class="card-image"
               />
@@ -116,7 +116,7 @@
           <button class="modal-close" @click="closeModal">×</button>
           <div class="modal-left">
             <img 
-              :src="`https://picsum.photos/seed/${selectedTrack.id}/500/300`" 
+              :src="`https://th.bing.com/th/id/R.82829ff601dc35a40bff024762b8d9aa?rik=J%2fg71SJEy7g6iA&riu=http%3a%2f%2fwww.qb.gd.gov.cn%2fimg%2f0%2f14%2f14346%2f163451.jpg&ehk=XhU7kX4pjqcUfyjRCEYce3mlATPEvSTqAPAf7MmyxVQ%3d&risl=&pid=ImgRaw&r=0`" 
               alt="曲目封面" 
               class="modal-image"
             />
@@ -253,19 +253,14 @@ const fetchTracks = async () => {
         "title": "木偶奇遇记",
         "description": "一段关于木偶成长与冒险的故事，讲述了一个木偶男孩如何通过一系列奇遇学会诚实、勇敢和善良的品质。",
         "media_type": "video",
-        "media_url": "https://storage.googleapis.com/web-dev-assets/video-and-source-tags/chrome.mp4",
-        "puppet_config_id": "puppet_hero",
-        "puppet_animation": {
-          "format": "lottie",
-          "url": "https://cdn.example.com/puppets/puppet_hero_animation.json"
-        }
+        "media_url": "/../src/assets/男1唱戏.mp4",
       },
       {
         "id": "track_002",
-        "title": "天鹅湖",
-        "description": "经典芭蕾舞剧改编的曲目，讲述了被邪恶巫师诅咒的公主变成天鹅，只有真爱的誓言才能打破诅咒的故事。",
+        "title": "冼夫人练兵",
+        "description": "冼夫人练兵木偶戏是广东高州等地流传的传统木偶戏剧目之一，以岭南历史名人冼夫人为题材。剧目表现了冼夫人为保境安民、团结部族而操练兵马的情景，既展现了她的智慧与胆略，也寄托了百姓对英雄人物的敬仰。表演中通过木偶的动作、唱腔和锣鼓点，生动再现了军营练兵的热烈场面，兼具教育意义和艺术观赏性，是岭南地方戏曲与民间传说相结合的代表作品。",
         "media_type": "video",
-        "media_url": "https://storage.googleapis.com/web-dev-assets/video-and-source-tags/chrome.mp4",
+        "media_url": "/../src/assets/女1唱戏.mp4",
         "puppet_config_id": "puppet_swan",
         "puppet_animation": {
           "format": "lottie",
@@ -908,7 +903,7 @@ const onVideoEnded = () => {
   background-color: rgba(0, 0, 0, 0.5);
   border-radius: 8px;
   backdrop-filter: blur(5px);
-  margin-bottom: 10px;
+  margin-top: auto;
 }
 
 .progress-container {
