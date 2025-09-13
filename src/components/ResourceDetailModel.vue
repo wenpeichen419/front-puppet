@@ -7,7 +7,7 @@
         </button>
 
         <div class="modal-content">
-          <!-- 使用 div 背景图（保持比例且背景色填充） -->
+          <!-- 图片区域 -->
           <div
             class="modal-image"
             :style="{ backgroundImage: item && item.image ? `url(${item.image})` : 'none' }"
@@ -15,6 +15,7 @@
             :aria-label="item ? item.title : 'image'"
           ></div>
 
+          <!-- 详情区域 -->
           <div class="modal-details">
             <h2>{{ item.title }}</h2>
             <p class="modal-description">{{ item.description || '暂无详细描述' }}</p>
@@ -71,32 +72,45 @@ export default {
 </script>
 
 <style scoped>
+/* 重置基础样式确保一致性 */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
 /* 动画 */
 .modal-fade-enter-active,
 .modal-fade-leave-active {
   transition: opacity 0.25s ease;
 }
 .modal-fade-enter-from,
-.modal-fade-leave-to { opacity: 0; }
+.modal-fade-leave-to { 
+  opacity: 0; 
+}
 
-/* 遮罩层 */
+/* 遮罩层 - 使用固定定位确保全屏覆盖 */
 .modal-overlay {
   position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.7);
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  padding: 20px;
   backdrop-filter: blur(5px);
 }
 
-/* 容器 */
+/* 容器 - 使用明确的尺寸和最大限制 */
 .modal-container {
-  width: 90%;
+  width: 100%;
   max-width: 900px;
-  max-height: 90vh;
-  background: white;         /* 容器背景（卡片白色） */
+  max-height: min(90vh, 800px); /* 双重限制确保安全 */
+  background: white;
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 10px 50px rgba(0, 0, 0, 0.3);
@@ -105,14 +119,14 @@ export default {
   position: relative;
 }
 
-/* 右上关闭按钮 */
+/* 右上关闭按钮 - 使用固定位置 */
 .modal-close {
   position: absolute;
-  top: 15px;
-  right: 15px;
+  top: 12px;
+  right: 12px;
   width: 40px;
   height: 40px;
-  background: rgba(0,0,0,0.2);
+  background: rgba(0, 0, 0, 0.2);
   border: none;
   border-radius: 50%;
   color: white;
@@ -120,76 +134,261 @@ export default {
   cursor: pointer;
   z-index: 10;
   transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-.modal-close:hover { background: #803c0f; transform: rotate(90deg); }
+.modal-close:hover { 
+  background: #803c0f; 
+  transform: rotate(90deg); 
+}
 
-/* 内容（图片 + 详情） */
+/* 内容区域 - 使用简单的flex布局 */
 .modal-content {
   display: flex;
   flex-direction: column;
   width: 100%;
-  /* 注意：不要在这里加 padding，会造成图片区域出现白边
-     把 padding 留给 modal-details 去控制内容区域 */
+  height: 100%;
 }
 
-/* 图片容器 - 背景图 + 背景色 */
+/* 图片容器 - 固定高度，确保一致性 */
 .modal-image {
   width: 100%;
-  min-width: 0;          /* flex 子项收缩问题的常见修复 */
   height: 400px;
-  background-color: #f9f2e7 !important; /* 强制背景色生效 */
+  min-height: 400px;
+  background-color: #f9f2e7;
   background-repeat: no-repeat;
   background-position: center center;
-  background-size: contain; /* 保持原比例完整显示 */
+  background-size: contain;
   flex-shrink: 0;
-  display: block;
-
-  /* 临时调试边框（如果需要看盒子范围，取消注释） */
-  /* outline: 2px dashed rgba(0,0,0,0.08); */
+  border-bottom: 1px solid #eeeeee;
 }
 
-/* 如果你想完全避免任何 1px 的白缝（因 subpixel/antialiasing），
-   可以微调宽度来覆盖： */
-.modal-image.force-fill {
-  width: calc(100% + 1px);
-  margin-left: -0.5px;
-}
-
-/* 详情区 */
+/* 详情区域 - 使用grid布局确保稳定性 */
 .modal-details {
-  padding: 25px;    /* 仅详情区有 padding，不影响图片宽度 */
+  padding: 25px;
+  display: grid;
+  grid-template-rows: auto auto auto 1fr auto;
+  gap: 20px;
+  min-height: 300px;
+  overflow-y: auto;
+}
+
+.modal-details h2 {
+  color: #803c0f;
+  font-size: 24px;
+  line-height: 1.3;
+  word-break: break-word;
+  margin: 0;
+}
+
+.modal-description {
+  color: #555555;
+  line-height: 1.6;
+  word-break: break-word;
+  margin: 0;
+}
+
+.modal-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  font-size: 14px;
+  color: #666666;
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.meta-icon {
+  flex-shrink: 0;
+}
+
+.modal-stats {
+  display: flex;
+  gap: 16px;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: #f9f2e7;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  flex-shrink: 0;
+}
+
+.stat-item:hover {
+  background: #e0d4c3;
+}
+
+.stat-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.stat-count {
+  font-weight: bold;
+  color: #803c0f;
+  min-width: 20px;
+  text-align: center;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 16px;
+  margin-top: auto;
+  padding-top: 20px;
+}
+
+.btn-download,
+.btn-share {
   flex: 1;
-  box-sizing: border-box;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s;
+  min-height: 44px;
 }
 
-/* 其余样式保持原样 */
-.modal-details h2 { margin: 0 0 15px; color: #803c0f; font-size: 24px; }
-.modal-description { line-height: 1.7; color: #555; margin-bottom: 20px; }
-.modal-meta { display:flex; gap:20px; margin-bottom:25px; font-size:14px; color:#666; }
-.meta-item { display:flex; align-items:center; gap:5px; }
+.btn-download {
+  background: #803c0f;
+  color: white;
+}
 
-.modal-stats { display:flex; gap:20px; margin:25px 0; }
-.stat-item { display:flex; align-items:center; gap:8px; padding:8px 15px; background:#f9f2e7; border-radius:20px; cursor:pointer; transition:all 0.2s; }
-.stat-item:hover { background:#e0d4c3; }
-.stat-icon { font-size:18px; }
-.stat-count { font-weight:bold; color:#803c0f; }
+.btn-download:hover {
+  background: #6e2c1b;
+}
 
-.modal-actions { display:flex; gap:15px; margin-top:30px; }
-.btn-download, .btn-share { flex:1; padding:12px; border:none; border-radius:6px; font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; }
-.btn-download { background:#803c0f; color:white; }
-.btn-download:hover { background:#6e2c1b; }
-.btn-share { background:#f5f5f5; color:#333; }
-.btn-share:hover { background:#e0e0e0; }
+.btn-share {
+  background: #f5f5f5;
+  color: #333333;
+  border: 1px solid #e0e0e0;
+}
 
-/* 响应式 */
+.btn-share:hover {
+  background: #e8e8e8;
+}
+
+/* 响应式设计 - 使用媒体查询确保跨设备兼容性 */
 @media (max-width: 768px) {
-  .modal-container { width:95%; max-height:85vh; }
-  .modal-image { height:300px; }
-  .modal-actions { flex-direction:column; }
-  .btn-download, .btn-share { width:100%; }
+  .modal-overlay {
+    padding: 16px;
+  }
+  
+  .modal-container {
+    max-height: min(90vh, 700px);
+  }
+  
+  .modal-image {
+    height: 300px;
+    min-height: 300px;
+  }
+  
+  .modal-details {
+    padding: 20px;
+    gap: 16px;
+  }
+  
+  .modal-details h2 {
+    font-size: 22px;
+  }
+  
+  .modal-meta {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .modal-stats {
+    justify-content: center;
+  }
+  
+  .modal-actions {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .btn-download,
+  .btn-share {
+    width: 100%;
+  }
 }
+
 @media (max-width: 480px) {
-  .modal-image { height:250px; }
-  .modal-meta { flex-direction:column; gap:10px; }
+  .modal-overlay {
+    padding: 12px;
+  }
+  
+  .modal-image {
+    height: 250px;
+    min-height: 250px;
+  }
+  
+  .modal-details {
+    padding: 16px;
+    gap: 14px;
+  }
+  
+  .modal-details h2 {
+    font-size: 20px;
+  }
+  
+  .modal-stats {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .stat-item {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .modal-close {
+    top: 8px;
+    right: 8px;
+    width: 36px;
+    height: 36px;
+    font-size: 20px;
+  }
+}
+
+/* 高对比度模式支持 */
+@media (prefers-contrast: high) {
+  .modal-container {
+    border: 2px solid #000000;
+  }
+  
+  .btn-download {
+    border: 2px solid #000000;
+  }
+  
+  .btn-share {
+    border: 2px solid #000000;
+  }
+}
+
+/* 减少动画支持 */
+@media (prefers-reduced-motion: reduce) {
+  .modal-fade-enter-active,
+  .modal-fade-leave-active,
+  .modal-close,
+  .stat-item,
+  .btn-download,
+  .btn-share {
+    transition: none;
+  }
 }
 </style>
