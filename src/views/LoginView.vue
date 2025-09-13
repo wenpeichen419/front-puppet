@@ -30,7 +30,7 @@ const handleLogin = () => {
   console.log('Username:', username.value);
   console.log('Password:', password.value);
   
-  fetch('http://localhost:8000/api/v1/auth/login', {
+  fetch('http://8.134.51.50:6060/api/v1/auth/login', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

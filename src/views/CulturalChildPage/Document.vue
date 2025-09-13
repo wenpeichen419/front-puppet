@@ -268,7 +268,7 @@ export default {
         docx: wordIcon,
         default: documentIcon
       },
-      authToken: 'bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOiIzIiwicm9sZSI6ImFkbWluIiwiZW1haWwiOiJhbWFuZGFjaGVuXzIwMjNAcXEuY29tIiwic3RhdHVzIjoiYWN0aXZlIiwiZXhwIjoxNzU2MTAzODIxfQ.ZBtXdezUHw1QrKX5sLX6o1o9aKXOXgQH4f8I2LOrOn0',
+      // 移除硬编码的authToken，改为通过computed属性获取
       
       // PDF查看器相关状态
       pdfDocument: null,
@@ -281,6 +281,10 @@ export default {
   computed: {
     totalPages() {
       return Math.ceil(this.total / this.pageSize)
+    },
+    // 添加computed属性，从localStorage获取authToken，与其他组件保持一致
+    authToken() {
+      return localStorage.getItem("cookie") || '';
     }
   },
   created() {
@@ -288,7 +292,7 @@ export default {
   },
   methods: {
     getAuthToken() {
-      return this.authToken
+      return this.authToken // 直接返回computed属性获取的token
     },
     
     getFileExtension(filename) {
@@ -312,7 +316,7 @@ export default {
         if (this.era) params.append('tags', this.era)
         if (this.theme) params.append('tags', this.theme)
 
-        const response = await fetch(`http://localhost:8000/api/v1/file/list?${params.toString()}`, {
+        const response = await fetch(`http://8.134.51.50:6060/api/v1/file/list?${params.toString()}`, {
           method: 'GET',
           headers: {
             'Accept': 'application/json',
@@ -445,7 +449,7 @@ export default {
           url: pdfUrl,
           withCredentials: true,
           httpHeaders: {
-            'Authorization': this.getAuthToken()
+            'Authorization': this.getAuthToken() // 使用动态获取的token
           }
         }).promise;
         
@@ -473,7 +477,7 @@ export default {
       try {
         const response = await fetch(`/api/v1/file/url/${this.selectedItem.id}`, {
           headers: {
-            'Authorization': this.getAuthToken(),
+            'Authorization': this.getAuthToken(), // 使用动态获取的token
             'Accept': 'application/json'
           }
         });
@@ -565,7 +569,7 @@ export default {
           method: 'GET',
           headers: {
             'Accept': 'application/json',
-            'Authorization': this.getAuthToken()
+            'Authorization': this.getAuthToken() // 使用动态获取的token
           }
         })
 
@@ -604,7 +608,7 @@ export default {
         // 2. 获取实际下载链接
         const urlResponse = await fetch(`/api/v1/file/url/${item.id}`, {
           headers: {
-            'Authorization': this.getAuthToken(),
+            'Authorization': this.getAuthToken(), // 使用动态获取的token
             'Accept': 'application/json'
           }
         });
@@ -623,7 +627,7 @@ export default {
         // 4. 下载文件
         const downloadResponse = await fetch(actualDownloadUrl, {
           headers: {
-            'Authorization': this.getAuthToken(),
+            'Authorization': this.getAuthToken(), // 使用动态获取的token
             'Accept': resourceInfo.mime_type
           }
         });

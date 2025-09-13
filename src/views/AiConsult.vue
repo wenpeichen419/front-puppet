@@ -49,7 +49,7 @@
             <div class="message-bubble">
               <!-- AI加载中显示动画，加载完成显示内容 -->
               <div v-if="message.isLoading" class="loading-spinner"></div>
-              <div v-else>{{ message.content }}</div>
+              <div v-else v-html="message.content"></div>
             </div>
           </div>
         </div>
@@ -100,6 +100,7 @@
 
 <script>
 import defaultAvatar from '@/assets/default-avatar.png'
+import { marked } from 'marked' 
 
 export default {
   name: 'AiConsult',
@@ -155,7 +156,7 @@ export default {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 90000);
 
-        const response = await fetch('http://localhost:8000/api/v1/chat_ask', {
+        const response = await fetch('http://8.134.51.50:6060/api/v1/chat_ask', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -181,17 +182,20 @@ export default {
         
         // 3. 处理正常响应：更新AI消息（关闭加载+设置内容）
         const botResponse = data?.answer || '已收到您的问题，但未获取到有效回答';
+        // 使用marked解析Markdown
+        const formattedResponse = marked.parse(botResponse);
+        
         // 找到最后一条AI消息并更新
         const lastBotMsgIndex = this.messages.findLastIndex(msg => msg.type === 'bot-message');
         if (lastBotMsgIndex !== -1) {
           this.messages[lastBotMsgIndex] = {
             type: 'bot-message',
-            content: botResponse,
+            content: formattedResponse,
             timestamp: new Date().toLocaleTimeString(),
             isLoading: false
           };
           // 执行流式打字效果
-          await this.typeResponse(botResponse, lastBotMsgIndex);
+          await this.typeResponse(formattedResponse, lastBotMsgIndex);
         }
       } catch (error) {
         // 4. 处理错误：更新AI消息为错误提示
@@ -511,7 +515,7 @@ export default {
   background-color: transparent;
   border-top: none;
   position: fixed;
-  left: 51%;
+  left: 53%;
   transform: translateX(-50%);
   width: 98%;
   max-width: 1200px;
@@ -676,5 +680,34 @@ textarea {
 .user-message .message-bubble {
   background-color: #eee4d3;
   color: #333;
+}
+
+/* Markdown内容样式 */
+.message-bubble ::v-deep h1,
+.message-bubble ::v-deep h2,
+.message-bubble ::v-deep h3,
+.message-bubble ::v-deep h4 {
+  color: #803c0f;
+  margin-top: 1em;
+  margin-bottom: 0.5em;
+}
+
+/* 修复列表编号超出气泡的问题 */
+.message-bubble ::v-deep ul,
+.message-bubble ::v-deep ol {
+  padding-left: 1.2em;
+  margin-bottom: 1em;
+  list-style-position: inside; /* 确保编号在气泡内部 */
+}
+
+.message-bubble ::v-deep li {
+  margin-bottom: 0.5em;
+  padding-left: 0.5em; /* 为编号留出适当空间 */
+  text-indent: -0.8em; /* 调整编号位置 */
+}
+
+.message-bubble ::v-deep strong {
+  font-weight: bold;
+  color: #6e2c1b;
 }
 </style>

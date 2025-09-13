@@ -6,7 +6,7 @@
 </template>
 
 <script>
-import ResourceSidebar from './CulturalChildPage/Sidebar.vue'
+import ResourceSidebar from './CulturalChildPage/SideBar.vue'
 
 export default {
   name: 'CulturalResourcesLayout',

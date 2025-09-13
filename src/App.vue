@@ -143,13 +143,14 @@ body {
   color: #fff;
   border: none;
   cursor: pointer;
+  font-weight: bold;
   border-radius: 4px;
 }
 .user-actions .register-btn {
   margin-left: 10px;
   padding: 8px 18px;
   font-size:16px !important;
-  background-color: #6e2c1b;
+  background-color: #803c0f;
   color: #fff;
   border: none;
   cursor: pointer;

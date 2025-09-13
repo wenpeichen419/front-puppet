@@ -96,9 +96,13 @@ export default {
         file: [
           { required: true, message: '请上传文件', trigger: 'change' }
         ]
-      },
-       // 权限码常量（实际项目中应该从store或localStorage获取）
-      authToken: 'bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOiIzIiwicm9sZSI6ImFkbWluIiwiZW1haWwiOiJhbWFuZGFjaGVuXzIwMjNAcXEuY29tIiwic3RhdHVzIjoiYWN0aXZlIiwiZXhwIjoxNzU2MTAzODIxfQ.ZBtXdezUHw1QrKX5sLX6o1o9aKXOXgQH4f8I2LOrOn0'
+      }
+    }
+  },
+  computed: {
+    // 从localStorage获取存储在cookie键下的token
+    authToken() {
+      return localStorage.getItem("cookie") || '';
     }
   },
   methods: {
@@ -141,23 +145,19 @@ export default {
       if (this.form.eraTag) formData.append('tags', this.form.eraTag);
       if (this.form.genreTag) formData.append('tags', this.form.genreTag);
       
-      // 或者正确方式2：使用数组语法（适用于PHP等后端）
-      // if (this.form.eraTag) formData.append('tags[]', this.form.eraTag);
-      // if (this.form.genreTag) formData.append('tags[]', this.form.genreTag);
-      
       formData.append('description', this.form.description);
 
       try {
-        const response = await fetch('http://localhost:8000/api/v1/file/upload', {
+        const response = await fetch('http://8.134.51.50:6060/api/v1/file/upload', {
           method: 'POST',
           headers: {
-            'Authorization': this.getAuthToken()
+            'Authorization': this.authToken // 直接使用计算属性
           },
           body: formData
         });
 
         const result = await response.json();
-        console.log('上传结果:', result); // 检查返回的数据结构
+        console.log('上传结果:', result);
         
         if (result.code === 200) {
           this.$message.success('上传成功！');
@@ -171,21 +171,6 @@ export default {
       }
     },
 
-    // 获取权限码的方法
-    getAuthToken() {
-      // 实际项目中应该从Vuex store或localStorage中获取
-      // 这里先用常量，但保留获取逻辑
-      return this.authToken
-      
-      /* 实际项目中的推荐实现：
-      // 从Vuex store获取
-      return this.$store.state.user.token
-      
-      // 或从localStorage获取
-      return localStorage.getItem('authToken')
-      */
-    },
-
     resetForm() {
       this.$refs.uploadForm.resetFields()
       this.fileList = []
@@ -193,6 +178,8 @@ export default {
     }
   }
 }
+
+
 </script>
 
 <style scoped>

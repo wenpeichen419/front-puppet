@@ -38,30 +38,65 @@ export default {
   name: 'ResourceSidebar',
   data() {
     return {
-      authToken: 'bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOiIzIiwicm9sZSI6ImFkbWluIiwiZW1haWwiOiJhbWFuZGFjaGVuXzIwMjNAcXEuY29tIiwic3RhdHVzIjoiYWN0aXZlIiwiZXhwIjoxNzU2MTAzODIxfQ.ZBtXdezUHw1QrKX5sLX6o1o9aKXOXgQH4f8I2LOrOn0',
-      currentType: '' // 新增当前选中类型状态
+      // 配置常量集中管理
+      config: {
+        apiBaseUrl: 'http://8.134.51.50:6060/api/v1',
+        defaultFileType: 'image',
+        pagination: {
+          skip: 0,
+          limit: 10
+        },
+        // 类型映射配置
+        typeConfig: {
+          picture: {
+            fileType: 'image',
+            branchId: 'img_001'
+          },
+          document: {
+            fileType: 'document',
+            branchId: 'doc_001'
+          },
+          video: {
+            fileType: 'video',
+            branchId: 'vid_001'
+          },
+          audio: {
+            fileType: 'audio',
+            branchId: 'aud_001'
+          },
+          literature: {
+            fileType: 'document',
+            branchId: 'doc_001'
+          }
+        }
+      },
+      currentType: '' // 当前选中类型状态
+    }
+  },
+  computed: {
+    // 与UploadDialog保持一致的token获取方式
+    authToken() {
+      return localStorage.getItem("cookie") || '';
     }
   },
   methods: {
     getAuthToken() {
-      return this.authToken
+      return this.authToken; // 使用计算属性获取token
     },
     
     async navigateTo(type) {
       // 记录当前选中类型
       this.currentType = type;
       
-      const typeMap = {
-        picture: 'image',
-        document: 'document',
-        video: 'video',
-        audio: 'audio'
-      };
-      
-      const fileType = typeMap[type] || 'image';
+      // 从配置中获取文件类型，默认为配置的默认类型
+      const typeConfig = this.config.typeConfig[type] || {};
+      const fileType = typeConfig.fileType || this.config.defaultFileType;
       
       try {
-        const response = await fetch(`http://localhost:8000/api/v1/file/list?skip=0&limit=10&file_type=${fileType}`, {
+        // 使用配置的基础URL构建请求地址
+        const url = `${this.config.apiBaseUrl}/file/list?skip=${this.config.pagination.skip}&limit=${this.config.pagination.limit}&file_type=${fileType}`;
+        
+        const response = await fetch(url, {
           method: 'GET',
           headers: {
             'Accept': 'application/json',
@@ -95,13 +130,9 @@ export default {
     },
     
     getBranchId(type) {
-      const map = {
-        picture: 'img_001',
-        literature: 'doc_001',
-        video: 'vid_001',
-        audio: 'aud_001'
-      }
-      return map[type] || 'default'
+      // 从配置中获取branchId
+      const typeConfig = this.config.typeConfig[type] || {};
+      return typeConfig.branchId || 'default';
     },
     filterByType(type) {
       console.log('筛选资源类型:', type)
@@ -114,6 +145,8 @@ export default {
     }
   }
 }
+
+
 </script>
 
 <style scoped>

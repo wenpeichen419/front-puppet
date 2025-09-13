@@ -221,12 +221,16 @@ export default {
       era: '',
       theme: '',
       title: '',
-      authToken: 'bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOiIzIiwicm9sZSI6ImFkbWluIiwiZW1haWwiOiJhbWFuZGFjaGVuXzIwMjNAcXEuY29tIiwic3RhdHVzIjoiYWN0aXZlIiwiZXhwIjoxNzU2MTAzODIxfQ.ZBtXdezUHw1QrKX5sLX6o1o9aKXOXgQH4f8I2LOrOn0'
+      fileBaseUrl: 'http://8.134.51.50:6060' // 添加基础URL
     }
   },
   computed: {
     totalPages() {
       return Math.ceil(this.total / this.pageSize)
+    },
+    // 从localStorage获取token的计算属性
+    authToken() {
+      return localStorage.getItem("cookie") || '';
     }
   },
   created() {
@@ -235,6 +239,17 @@ export default {
   methods: {
     getAuthToken() {
       return this.authToken
+    },
+    
+    // 添加URL处理方法
+    getFullUrl(url) {
+      if (!url) return '';
+      
+      // 如果已经是完整URL，直接返回
+      if (url.startsWith('http')) return url;
+      
+      // 如果是相对路径，添加基础URL
+      return `${this.fileBaseUrl}${url.startsWith('/') ? url : '/' + url}`;
     },
     
     async fetchResources() {
@@ -249,7 +264,7 @@ export default {
         if (this.era) params.append('tags', this.era)
         if (this.theme) params.append('tags', this.theme)
 
-        const response = await fetch(`http://localhost:8000/api/v1/file/list?${params.toString()}`, {
+        const response = await fetch(`http://8.134.51.50:6060/api/v1/file/list?${params.toString()}`, {
           method: 'GET',
           headers: {
             'Accept': 'application/json',
@@ -294,7 +309,7 @@ export default {
     // 新增：通过info接口获取资源详细信息
     async fetchResourceInfo(fileId) {
       try {
-        const response = await fetch(`http://localhost:8000/api/v1/file/info/${fileId}`, {
+        const response = await fetch(`http://8.134.51.50:6060/api/v1/file/info/${fileId}`, {
           method: 'GET',
           headers: {
             'Accept': 'application/json',
@@ -320,140 +335,165 @@ export default {
       }
     },
 
-    useLocalData() {
-      const baseUrl = 'http://localhost:9000/back-puppet/uploads';
-      this.resources = [
-        {
-          id: '1e5b4088-fc42-4019-8324-95827dd19193',
-          title: '清代宫廷木偶戏表演',
-          videoUrl: `${baseUrl}/1e5b4088-fc42-4019-8324-95827dd19193.mp4`,
-          thumbnail: 'https://picsum.photos/seed/video1/400/225',
-          duration: 320,
-          views: 128,
-          likes: 24,
-          description: '清代宫廷风格木偶戏经典片段',
-          uploadDate: '2025年8月19日',
-          category: '清朝, 娱乐',
-          file_size: 394201,
-          mime_type: 'video/mp4',
-          download_count: 36
-        },
-        {
-          id: '752125a1-8fbe-471f-b365-73c96ba07eb2',
-          title: '民国木偶戏民间巡演',
-          videoUrl: `${baseUrl}/752125a1-8fbe-471f-b365-73c96ba07eb2.mp4`,
-          thumbnail: 'https://picsum.photos/seed/video2/400/225',
-          duration: 540,
-          views: 96,
-          likes: 18,
-          description: '民国时期民间木偶戏巡演记录',
-          uploadDate: '2025年8月19日',
-          category: '民国, 战争',
-          file_size: 5657270,
-          mime_type: 'video/mp4',
-          download_count: 24
-        }
-      ]
-      this.total = 2
-    },
+    // 优化的下载功能：处理相对URL问题
+    async downloadResource(item) {
+  this.isDownloading = true;
+  try {
+    console.log('开始下载，文件ID:', item.id);
+    
+    // 1. 直接调用url接口获取下载链接
+    const urlResponse = await fetch(`http://8.134.51.50:6060/api/v1/file/url/${item.id}`, {
+      headers: {
+        'Authorization': this.getAuthToken(),
+        'Accept': 'application/json'
+      }
+    });
 
-    // 优化的下载功能：先通过info接口获取准确信息，再下载
-         async downloadResource(item) {
-      this.isDownloading = true;
+    if (!urlResponse.ok) {
+      throw new Error(`获取下载链接失败，状态码: ${urlResponse.status}`);
+    }
+
+    const urlData = await urlResponse.json();
+    console.log('URL接口返回的完整数据:', urlData);
+    
+    if (urlData.code !== 200 || !urlData.data?.download_url) {
+      throw new Error(`获取下载链接失败: ${urlData.message || '未返回有效链接'}`);
+    }
+    
+    // 2. 检查返回的URL
+    let actualDownloadUrl = urlData.data.download_url;
+    console.log('后端返回的原始下载链接:', actualDownloadUrl);
+    
+    // 3. 修正端口问题（6061 → 6060）
+    if (actualDownloadUrl.includes(':6061/')) {
+      actualDownloadUrl = actualDownloadUrl.replace(':6061/', ':6060/');
+      console.log('修正端口后的链接:', actualDownloadUrl);
+    }
+    
+    // 4. 使用带认证的下载方法
+    this.downloadWithAuth(actualDownloadUrl, item.title);
+    
+    this.$message.success('开始下载视频文件');
+
+  } catch (error) {
+    console.error('视频下载失败:', error);
+    this.$message.error(`下载失败: ${error.message}`);
+    this.isDownloading = false;
+  }
+},
+
+// 带认证的下载方法
+async downloadWithAuth(url, filename) {
+  try {
+    console.log('带认证下载:', url);
+    
+    // 方法1：使用fetch + blob（确保携带认证）
+    const response = await fetch(url, {
+      headers: {
+        'Authorization': this.getAuthToken()
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`下载请求失败: ${response.status} ${response.statusText}`);
+    }
+
+    // 获取文件blob
+    const blob = await response.blob();
+    
+    // 创建下载链接
+    const downloadUrl = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.download = filename || 'video.mp4';
+    
+    // 触发下载
+    document.body.appendChild(link);
+    link.click();
+    
+    // 清理资源
+    setTimeout(() => {
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(downloadUrl);
+      this.isDownloading = false;
+    }, 100);
+
+    console.log('下载完成');
+
+  } catch (error) {
+    console.error('认证下载失败:', error);
+    
+    // 方法2：降级方案 - 使用iframe（携带cookie）
+    this.downloadWithIframe(url);
+  }
+},
+
+// iframe下载方法（用于降级）
+downloadWithIframe(url) {
+  try {
+    console.log('使用iframe下载:', url);
+    
+    const iframe = document.createElement('iframe');
+    iframe.style.display = 'none';
+    
+    // 在URL中添加token参数（如果后端支持）
+    const downloadUrl = new URL(url);
+    if (this.getAuthToken()) {
+      downloadUrl.searchParams.append('token', this.getAuthToken());
+    }
+    
+    iframe.src = downloadUrl.toString();
+    document.body.appendChild(iframe);
+    
+    // 设置超时清理
+    setTimeout(() => {
+      if (iframe.parentNode) {
+        document.body.removeChild(iframe);
+      }
+      this.isDownloading = false;
+    }, 10000);
+    
+  } catch (iframeError) {
+    console.error('iframe下载也失败:', iframeError);
+    this.isDownloading = false;
+    this.$message.error('所有下载方式都失败了');
+  }
+},
+
+    // 备用下载方案
+    async fallbackDownload(item) {
       try {
-        // 1. 获取资源基本信息
-        const resourceInfo = await this.fetchResourceInfo(item.id);
-        if (!resourceInfo) {
-          throw new Error('无法获取资源详细信息');
-        }
+        const directUrl = this.getFullUrl(item.videoUrl);
+        console.log('使用备用下载URL:', directUrl);
         
-        // 2. 第一步：调用url接口获取实际下载链接（这一步返回的是JSON）
-        const urlResponse = await fetch(`http://localhost:8000/api/v1/file/url/${item.id}`, {
+        const response = await fetch(directUrl, {
           headers: {
-            'Authorization': this.getAuthToken(),
-            'Accept': 'application/json' // 明确要求返回JSON
+            'Authorization': this.getAuthToken()
           }
         });
 
-        if (!urlResponse.ok) {
-          throw new Error(`获取下载链接失败，状态码: ${urlResponse.status}`);
+        if (!response.ok) {
+          throw new Error(`直接下载失败，状态码: ${response.status}`);
         }
 
-        // 3. 解析返回的JSON，提取实际下载URL
-        const urlData = await urlResponse.json();
-        if (urlData.code !== 200 || !urlData.data?.download_url) {
-          throw new Error(`获取下载链接失败: ${urlData.message || '未返回有效链接'}`);
-        }
-        const actualDownloadUrl = urlData.data.download_url;
-        console.log('获取到的实际下载链接:', actualDownloadUrl);
-
-        // 4. 第二步：使用提取到的URL下载视频文件
-        const downloadResponse = await fetch(actualDownloadUrl, {
-          headers: {
-            'Authorization': this.getAuthToken(),
-            // 根据资源信息设置正确的接受类型
-            'Accept': resourceInfo.mime_type === 'application/octet-stream' 
-              ? 'video/*' 
-              : resourceInfo.mime_type
-          }
-        });
-
-        if (!downloadResponse.ok) {
-          throw new Error(`下载文件失败，状态码: ${downloadResponse.status}`);
-        }
-
-        // 5. 验证文件大小
-        const contentLength = downloadResponse.headers.get('content-length');
-        if (contentLength) {
-          const expectedSize = parseInt(resourceInfo.file_size);
-          const actualSize = parseInt(contentLength);
-          const tolerance = expectedSize * 0.01; // 1% 误差容忍度
-          
-          if (Math.abs(actualSize - expectedSize) > tolerance) {
-            this.$message.warning(`文件大小可能不匹配，预期${this.formatFileSize(expectedSize)}，实际${this.formatFileSize(actualSize)}`);
-          }
-        }
-
-        // 6. 处理文件流
-        const blob = await downloadResponse.blob();
-        
-        // 7. 检查是否为有效视频文件
-        if (blob.size < 1024 * 10 && resourceInfo.file_size > 1024 * 100) {
-          throw new Error(`下载的文件过小（${this.formatFileSize(blob.size)}），可能不是有效的视频文件`);
-        }
-
-        // 8. 创建正确类型的blob
-        const videoBlob = new Blob([blob], { 
-          type: resourceInfo.mime_type === 'application/octet-stream' 
-            ? 'video/mp4' 
-            : resourceInfo.mime_type 
-        });
-
-        // 9. 下载文件
-        const url = window.URL.createObjectURL(videoBlob);
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = resourceInfo.filename; // 使用原始文件名
+        link.download = item.title || 'video';
         document.body.appendChild(link);
         link.click();
 
-        // 10. 清理资源
         setTimeout(() => {
           document.body.removeChild(link);
           window.URL.revokeObjectURL(url);
-          this.isDownloading = false;
-          
-          // 更新下载次数
-          if (this.selectedItem) {
-            this.selectedItem.download_count = (this.selectedItem.download_count || 0) + 1;
-          }
         }, 100);
 
-        this.$message.success(`下载成功：${resourceInfo.filename}（${this.formatFileSize(blob.size)}）`);
-      } catch (error) {
-        console.error('视频下载失败:', error);
-        this.$message.error(`下载失败: ${error.message}`);
-        this.isDownloading = false;
+        this.$message.success('下载成功！');
+
+      } catch (fallbackError) {
+        console.error('备用下载方案也失败:', fallbackError);
+        this.$message.error('所有下载方式都失败了');
       }
     },
 
@@ -544,6 +584,25 @@ export default {
       this.currentPage = page;
       this.fetchResources();
       window.scrollTo({ top: 0, behavior: 'smooth' });
+    },
+    
+    // 本地测试数据
+    useLocalData() {
+      this.resources = Array.from({length: 9}, (_, i) => ({
+        id: i + 1,
+        title: `测试视频 ${i+1}`,
+        videoUrl: '/videos/sample.mp4',
+        thumbnail: this.fallbackImage,
+        duration: 120 + i * 30,
+        views: 100 + i,
+        likes: 10 + i,
+        description: '本地测试视频数据',
+        uploadDate: '2023年1月1日',
+        category: '测试分类',
+        file_size: 1024 * 1024 * (i + 1),
+        mime_type: 'video/mp4'
+      }));
+      this.total = 15;
     }
   }
 }
