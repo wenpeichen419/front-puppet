@@ -405,6 +405,7 @@ export default {
 
 <style scoped>
 /* 搜索框样式优化 */
+/* 搜索框样式优化 */
 .search-container {
   position: sticky;
   top: 130px;
@@ -414,7 +415,6 @@ export default {
   max-width: 1400px;
   width: 100%;
   box-sizing: border-box;
-  
 }
 
 .search-box {
@@ -454,10 +454,13 @@ export default {
   font-weight: 500;
 }
 
-.search-select, .search-input {
+/* 修改后的下拉框和输入框样式 */
+.search-select,
+.search-input {
   padding: 14px 16px;
-  border: 2px solid #d0c8b8;
-  border-radius: 8px;
+  border: none; /* 去掉默认边框 */
+  border-bottom: 3px solid #d0c8b8; /* 只保留下边框 */
+  border-radius: 10px; /* 下边框风格不需要圆角 */
   font-size: 22px;
   width: 100%;
   box-sizing: border-box;
@@ -465,10 +468,12 @@ export default {
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-.search-select:focus, .search-input:focus {
+/* 聚焦时强化下边框颜色 */
+.search-select:focus,
+.search-input:focus {
   outline: none;
-  border-color: #803c0f;
-  box-shadow: 0 0 0 3px rgba(128, 60, 15, 0.1);
+  border-bottom-color: #803c0f;
+  box-shadow: 0 3px 0 0 rgba(128, 60, 15, 0.1);
 }
 
 .search-select {
@@ -484,6 +489,7 @@ export default {
   font-size: 22px;
 }
 
+/* 下面的代码保持不变 */
 .search-button {
   padding: 14px 28px;
   background-color: #7a3c09;
@@ -520,8 +526,8 @@ export default {
   background: white;
   display: flex;
   flex-direction: column;
-  height: auto; /* 改为自动高度 */
-  min-height: 350px; /* 设置最小高度 */
+  height: auto;
+  min-height: 350px;
 }
 
 .resource-card:hover {
