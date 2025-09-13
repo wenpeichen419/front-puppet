@@ -5,7 +5,6 @@
       <source :src="video.url" type="video/mp4">
       您的浏览器不支持 video 标签。
     </video>
-    {{ video.url }}
     <div class="video-info">
       <p>{{ video.description }}</p>
       <div class="video-stats">
@@ -34,9 +33,10 @@ export default {
   },
   created() {
     const videoId = this.$route.params.id;
-    axios.get(`http://localhost:8000/api/v1/file/info/${videoId}`, {
+    console.log(localStorage.getItem("cookie"))
+    axios.get(`http://8.134.51.50:6060/api/v1/file/info/${videoId}`, {
       headers: {
-        Authorization: localStorage.getItem("cookie")
+        "Authorization": localStorage.getItem("cookie"),
       }
     })
       .then(response => {

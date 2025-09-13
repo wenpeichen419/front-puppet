@@ -1,6 +1,6 @@
 <template>
   <div id="home-page">
-    <el-carousel style="height: 500px; margin: 10px;">
+    <el-carousel style="height: 500px; margin: 20px;">
       <el-carousel-item v-for="(img, idx) in carouselImages" :key="idx" style="height: 500px;">
         <img :src="img" alt="Puppet show" style="width: 100%; border-radius: 8px; height: 100%;">
       </el-carousel-item>
@@ -114,7 +114,7 @@ export default {
     },
     async fetchInheritors(skip, limit) {
       try {
-        const response = await fetch('http://localhost:8000/api/v1/master/list?skip=' + skip + '&limit=' + limit + '&search', {
+        const response = await fetch('http://8.134.51.50:6060/api/v1/master/list?skip=' + skip + '&limit=' + limit + '&search', {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -124,10 +124,6 @@ export default {
         const result = await response.json();
 
         if (result.code === 200 && result.data && result.data.items) {
-          // Replace the array instead of pushing to avoid nested arrays
-          // this.inheritors = result.data.items;
-
-          // Or if you want to append to existing data:
           this.inheritors = [
             ...this.inheritors,
             ...result.data.items
@@ -140,10 +136,38 @@ export default {
         ElMessage.error('Error fetching inheritors: ' + (error.message || 'Unknown error'));
         console.error('Error fetching inheritors:', error);
       }
+    },
+    async fetchNewsItems(skip, limit) {
+      try {
+        const response = await fetch('http://8.134.51.50:6060/api/v1/article/list?skip=' + skip + '&limit=' + limit, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': localStorage.getItem("cookie"),
+          }
+        });
+        const result = await response.json();
+        if (result.code === 200 && result.data && Array.isArray(result.data.articles)) {
+          // 合并后端新闻到现有 newsItems
+          this.newsItems = [
+            ...result.data.articles.map(item => ({
+              id: item.id,
+              title: item.title,
+              description: item.description
+            })),
+            ...this.newsItems
+          ];
+        } else {
+          ElMessage.error('Failed to fetch news: ' + (result.message || 'Unknown error'));
+        }
+      } catch (error) {
+        ElMessage.error('Error fetching news: ' + (error.message || 'Unknown error'));
+      }
     }
   },
   mounted() {
     this.fetchInheritors(0, 10);
+    this.fetchNewsItems(0, 10);
   }
 };
 </script>
@@ -151,7 +175,7 @@ export default {
 <style scoped>
 #home-page {
   overflow-y: scroll;
-  max-height: 780px;
+  max-height: 870px;
   padding-top: 150px;
 
   &::-webkit-scrollbar {
