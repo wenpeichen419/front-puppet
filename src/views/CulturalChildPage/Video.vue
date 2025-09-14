@@ -610,39 +610,45 @@ downloadWithIframe(url) {
 
 
 <style scoped>
-/* 样式保持不变 */
-.resource-subpage {
-  padding-top: 100px;
-  min-height: calc(100vh - 180px);
-}
-
+/* 搜索框样式优化 */
 .search-container {
   position: sticky;
   top: 130px;
   z-index: 80;
-  margin-left: 50px;
-  padding: 20px 20px 0;
+  margin: 0 auto 30px;
+  padding: 20px;
+  max-width: 1400px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .search-box {
   background-color: #EEE4D3;
-  padding: 25px 35px;
   border-radius: 48px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 25px 35px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  transition: box-shadow 0.3s ease;
+}
+
+.search-box:hover {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+  background-color: #EEE4D3;
 }
 
 .search-fields {
   display: flex;
   align-items: center;
-  justify-content: space-around;
+  justify-content: flex-start;
   width: 100%;
-  gap: 20px;
+  gap: 25px;
+  flex-wrap: wrap;
 }
 
 .search-field {
   display: flex;
   align-items: center;
   flex: 1;
+  min-width: 200px;
   min-width: 0;
 }
 
@@ -651,15 +657,29 @@ downloadWithIframe(url) {
   white-space: nowrap;
   font-size: 22px;
   color: #333;
+  font-weight: 500;
 }
 
-.search-select, .search-input {
-  padding: 12px 16px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
+/* 修改后的下拉框和输入框样式 */
+.search-select,
+.search-input {
+  padding: 14px 16px;
+  border: none; /* 去掉默认边框 */
+  border-bottom: 3px solid #d0c8b8; /* 只保留下边框 */
+  border-radius: 10px; /* 下边框风格不需要圆角 */
   font-size: 22px;
   width: 100%;
   box-sizing: border-box;
+  background-color: white;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* 聚焦时强化下边框颜色 */
+.search-select:focus,
+.search-input:focus {
+  outline: none;
+  border-bottom-color: #803c0f;
+  box-shadow: 0 3px 0 0 rgba(128, 60, 15, 0.1);
 }
 
 .search-select {
@@ -676,19 +696,33 @@ downloadWithIframe(url) {
 }
 
 .search-button {
-  padding: 12px 24px;
+  padding: 14px 28px;
   background-color: #7a3c09;
   color: white;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
   font-size: 22px;
   white-space: nowrap;
   flex-shrink: 0;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  font-weight: 500;
 }
 
 .search-button:hover {
   background-color: #6a3408;
+  transform: translateY(-2px);
+}
+
+.search-button:active {
+  transform: translateY(0);
+}
+
+/* 页面基础样式 */
+.resource-subpage {
+  padding-top: 100px;
+  min-height: calc(100vh - 180px);
+  background-color: #fcfaf7;
 }
 
 .page-header-spacer {
@@ -697,69 +731,83 @@ downloadWithIframe(url) {
 
 .page-header {
   padding: 0 20px 20px;
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
 .page-header h2 {
   margin: 0;
   color: #803c0f;
-  font-size: 24px;
+  font-size: 32px;
   border-bottom: 2px solid #e0d4c3;
-  padding-bottom: 10px;
+  padding-bottom: 15px;
 }
 
 .branch-path {
   color: #666;
-  font-size: 14px;
-  margin-top: 5px;
+  font-size: 16px;
+  margin-top: 8px;
 }
 
 .resource-container {
-  padding: 0 20px;
+  padding: 0;
 }
 
+/* 网格布局优化 */
 .resource-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 37.5px;
-  margin-bottom: 40px;
-  max-width: none;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 35px;
+  margin-bottom: 50px;
+  max-width: 1400px;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
   padding: 0 20px;
-  justify-items: start;
+  box-sizing: border-box;
 }
 
 .resource-card {
-  width: 450px;
-  height: 400px;
+  width: 100%;
+  max-width: 450px;
   margin-bottom: 30px;
   border: 1px solid #e0e0e0;
-  border-radius: 8px;
+  border-radius: 12px;
   overflow: hidden;
   position: relative;
-  transition: transform 0.3s ease;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
   background: white;
-  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  height: auto;
+  min-height: 350px;
 }
 
 .resource-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  transform: translateY(-8px);
+  box-shadow: 0 12px 20px rgba(0, 0, 0, 0.1);
 }
 
+/* 卡片内部样式优化 */
 .card-image {
   position: relative;
-  height: 250px;
+  height: 220px; /* 固定图片区域高度 */
   overflow: hidden;
+  background: #f9f2e7; /* 添加背景色填充空白 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .card-image img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  transition: transform 0.5s ease;
+  object-fit: contain; /* 保持图片比例 */
+  background: #ffffffff; /* 图片内部的背景色 */
 }
 
 .resource-card:hover .card-image img {
-  transform: scale(1.05);
+  transform: scale(1.08);
 }
 
 .video-duration {
@@ -810,13 +858,16 @@ downloadWithIframe(url) {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(128, 60, 15, 0.7);
+  background: rgba(128, 60, 15, 0.75);
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
   opacity: 0;
   transition: opacity 0.3s ease;
+  font-size: 18px;
+  font-weight: 500;
+  cursor: pointer;
 }
 
 .resource-card:hover .card-hover {
@@ -825,85 +876,61 @@ downloadWithIframe(url) {
 
 .card-body {
   padding: 20px;
-  min-height: 100px;
+  flex: 1; /* 让内容区域填充剩余空间 */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 130px; /* 设置内容区域最小高度 */
 }
 
 .card-body h3 {
   font-size: 24px;
-  margin-bottom: 15px;
-  white-space: nowrap;
+  margin: 0 0 15px;
+  color: #333;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .stats {
   display: flex;
   justify-content: space-between;
   color: #666;
-  font-size: 22px;
+  font-size: 20px;
+  margin-top: auto; /* 将统计信息推到底部 */
 }
 
 .stat-view, .stat-like {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 8px;
 }
 
-.empty-tip {
-  text-align: center;
-  padding: 50px 0;
-}
-
-.empty-tip img {
-  width: 200px;
-  opacity: 0.6;
-  margin-bottom: 20px;
-}
-
-.loading-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(255, 255, 255, 0.9);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  z-index: 999;
-}
-
-.loading-spinner {
-  width: 50px;
-  height: 50px;
-  border: 5px solid #f3f3f3;
-  border-top: 5px solid #803c0f;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 15px;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
+/* 分页器样式优化 */
 .pagination-container {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 20px;
-  margin-top: 30px;
+  gap: 15px;
+  margin: 40px 0 60px;
 }
 
 .pagination-button {
-  padding: 8px 16px;
+  padding: 10px 20px;
   background-color: #7a3c09;
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  font-size: 16px;
+}
+
+.pagination-button:hover:not(:disabled) {
+  background-color: #6a3408;
+  transform: translateY(-2px);
 }
 
 .pagination-button:disabled {
@@ -912,8 +939,56 @@ downloadWithIframe(url) {
 }
 
 .pagination-info {
-  font-size: 14px;
+  font-size: 16px;
   color: #666;
+  padding: 0 10px;
+}
+
+.empty-tip {
+  text-align: center;
+  padding: 80px 0;
+  color: #666;
+}
+
+.empty-tip img {
+  width: 220px;
+  opacity: 0.6;
+  margin-bottom: 25px;
+}
+
+.empty-tip p {
+  font-size: 18px;
+  margin: 0;
+}
+
+/* 加载状态样式优化 */
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.95);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+.loading-spinner {
+  width: 60px;
+  height: 60px;
+  border: 6px solid #f3f3f3;
+  border-top: 6px solid #803c0f;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 20px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 .modal-overlay {
@@ -1072,45 +1147,86 @@ downloadWithIframe(url) {
   background-color: #c6ecc6;
 }
 
+/* 响应式设计优化 */
 @media (max-width: 1200px) {
   .search-fields {
-    flex-wrap: wrap;
+    gap: 20px;
   }
   
   .search-field {
-    flex: 1 1 40%;
+    flex: 1 1 45%;
   }
   
   .resource-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 30px;
+  }
+  
+  .card-image {
+    height: 200px;
+  }
+}
+
+@media (max-width: 992px) {
+  .resource-grid {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 30px;
+  }
+  
+  .card-image {
+    height: 200px;
   }
 }
 
 @media (max-width: 768px) {
   .search-container {
-    margin-left: 0;
-    padding: 10px;
+    top: 100px;
+    padding: 15px;
+    margin-bottom: 20px;
+  }
+  
+  .search-box {
+    padding: 20px;
+    border-radius: 30px;
   }
   
   .search-fields {
     flex-direction: column;
     align-items: stretch;
+    gap: 15px;
   }
   
   .search-field {
     flex: 1 1 100%;
-    margin-bottom: 15px;
+    margin-bottom: 0;
   }
   
-  .resource-grid {
-    grid-template-columns: 1fr;
-    gap: 30px;
-    padding: 0 10px;
+  .search-label {
+    font-size: 20px;
+  }
+  
+  .search-select, .search-input, .search-input::placeholder {
+    font-size: 20px;
+    padding: 12px 15px;
+  }
+  
+  .search-button {
+    width: 100%;
+    padding: 14px;
+    font-size: 20px;
+    margin-top: 10px;
+  }
+  
+  .page-header h2 {
+    font-size: 28px;
   }
   
   .resource-card {
-    width: 100%;
-    height: auto;
+    height: 380px;
+  }
+  
+  .card-body h3 {
+    font-size: 22px;
   }
   
   .modal-content {
@@ -1130,6 +1246,41 @@ downloadWithIframe(url) {
     flex: 1;
     min-width: 120px;
     justify-content: center;
+  }
+}
+
+@media (max-width: 576px) {
+  .resource-grid {
+    grid-template-columns: 1fr;
+    gap: 25px;
+    padding: 0 15px;
+  }
+  
+  .resource-card {
+    max-width: 100%;
+    height: auto;
+  }
+  
+  .card-image {
+    height: 180px;
+  }
+  
+  .card-body {
+    min-height: auto;
+    padding: 18px;
+  }
+  
+  .stats {
+    font-size: 18px;
+  }
+  
+  .pagination-container {
+    gap: 10px;
+  }
+  
+  .pagination-button {
+    padding: 8px 15px;
+    font-size: 14px;
   }
 }
 </style>

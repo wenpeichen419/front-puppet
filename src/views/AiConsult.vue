@@ -165,8 +165,7 @@ export default {
           body: JSON.stringify({
             question: userMessageContent,
             session_id: this.sessionId,
-            style: "科普",
-            llm_provider: "qwen2.5:1.5b"
+            style: "科普"
           }),
           signal: controller.signal
         });
