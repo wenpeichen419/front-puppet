@@ -86,7 +86,7 @@ function handleImgError(event: Event) {
 
 .scripts-page {
   overflow-y: scroll;
-  max-height: 560px;
+  max-height: 75vh;
 }
 
 .script-item {

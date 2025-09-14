@@ -139,7 +139,7 @@ onMounted(() => {
 <style scoped>
 .script-text {
     margin-top: 10px;
-    min-height: 80vh;
+    min-height: 85vh;
     padding: 24px;
     background-color: #fdf7f5;
     color: #3a1a13;
@@ -237,7 +237,7 @@ onMounted(() => {
     box-shadow: 0 6px 20px rgba(110, 44, 27, 0.1);
     animation: fadeIn 0.4s ease-in-out;
     border-left: 5px solid #6e2c1b;
-    max-height: 500px;
+    max-height: 65vh;
     overflow-y: scroll;
 }
 
