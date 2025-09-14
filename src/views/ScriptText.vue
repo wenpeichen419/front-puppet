@@ -72,11 +72,44 @@ async function fetchScripts(skip = 0, limit = 20) {
                     images: [f.file_url]
                 }));
         } else {
-            scripts.value = [];
+            scripts.value = getSampleScripts();
         }
     } catch (e) {
-        scripts.value = [];
+        scripts.value = getSampleScripts();
     }
+}
+
+function getSampleScripts() {
+    return [
+        {
+            id: 'sample-1',
+            title: '示例剧本一：三打白骨精',
+            content: '这是一个经典的皮影戏剧本，讲述了孙悟空如何三次识破白骨精的诡计，保护唐僧西天取经的故事。',
+            author: '吴承恩 (改编)',
+            images: ['/src/assets/puppet-example.jpg']
+        },
+        {
+            id: 'sample-2',
+            title: '示例剧本二：哪吒闹海',
+            content: '本剧本改编自中国古典神话，描绘了小英雄哪吒反抗龙王，为民除害的英勇事迹，情节曲折，引人入胜。',
+            author: '神话传说 (改编)',
+            images: ['/src/assets/puppet1.jpg']
+        },
+        {
+            id: 'sample-3',
+            title: '示例剧本三：沉香救母',
+            content: '一个感人至深的故事，讲述了沉香为了救出被压在华山下的母亲，历经千辛万苦，最终拜师学艺，劈山救母。',
+            author: '民间故事 (改编)',
+            images: ['/src/assets/puppet2.jpg']
+        },
+        {
+            id: 'sample-4',
+            title: '示例剧本四：西游记之火焰山',
+            content: '师徒四人行至火焰山，酷热难当，悟空三借芭蕉扇，与牛魔王、铁扇公主斗智斗勇，最终成功灭火，继续西行。',
+            author: '吴承恩 (改编)',
+            images: ['/src/assets/puppet.png']
+        }
+    ];
 }
 
 // 显示剧本详情
@@ -153,7 +186,7 @@ onMounted(() => {
 }
 
 .script-card-content {
-    padding: 24px;
+    padding: 20px;
 }
 
 .script-card h3 {

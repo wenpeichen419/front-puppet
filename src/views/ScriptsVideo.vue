@@ -56,8 +56,12 @@ async function fetchScriptsFromBackend(skip = 0, limit = 10) {
     }
   } catch (e) {
 
+  }
+}
 
-
+onMounted(() => {
+  fetchScriptsFromBackend();
+});
 
 function goToVideo(id: number | string) {
   router.push(`/video/${id}`);
