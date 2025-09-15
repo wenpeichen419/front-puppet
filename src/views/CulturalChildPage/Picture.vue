@@ -72,8 +72,14 @@
           v-for="item in resources" 
           :key="item.id" 
           class="resource-card"
+          :class="{ 'deleted-resource': item.is_deleted }"
           @click="showDetail(item)"
         >
+          <!-- 已删除标记 -->
+          <div v-if="item.is_deleted" class="deleted-overlay">
+            <div class="deleted-badge">已删除</div>
+          </div>
+          
           <div class="card-image">
             <img 
               :src="getImageUrl(item.image)" 
@@ -86,9 +92,19 @@
           </div>
           <div class="card-body">
             <h3>{{ item.title }}</h3>
-            <div class="stats">
-              <span class="stat-view">👁️ {{ item.views }}</span>
-              <span class="stat-like">❤️ {{ item.likes }}</span>
+            <div class="card-footer">
+              <div class="stats">
+                <span class="stat-view">👁️ {{ item.views }}</span>
+                <span class="stat-like">❤️ {{ item.likes }}</span>
+              </div>
+              <!-- 删除按钮 - 仅对未删除资源显示 -->
+              <button 
+                v-if="!item.is_deleted"
+                class="delete-button"
+                @click.stop="handleDeleteClick(item)"
+              >
+                × 删除本资源
+              </button>
             </div>
           </div>
         </div>
@@ -127,6 +143,18 @@
       @download="downloadResource"
       @share="shareResource"
     />
+
+    <!-- 删除确认弹窗 -->
+    <div v-if="showDeleteConfirm" class="modal-overlay">
+      <div class="delete-confirm-modal">
+        <h3>确认删除</h3>
+        <p>确定要删除资源 "{{ deleteItem?.title }}" 吗？</p>
+        <div class="modal-buttons">
+          <button class="cancel-button" @click="showDeleteConfirm = false">取消</button>
+          <button class="confirm-button" @click="confirmDelete">确定</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -154,7 +182,9 @@ export default {
       era: '',
       theme: '',
       title: '',
-      fileBaseUrl: 'http://8.134.51.50:6060' // 添加文件服务器基础URL
+      fileBaseUrl: 'http://8.134.51.50:6060', // 添加文件服务器基础URL
+      showDeleteConfirm: false, // 删除确认弹窗显示状态
+      deleteItem: null // 待删除的资源项
     }
   },
   computed: {
@@ -262,7 +292,8 @@ export default {
               category: item.tags?.join(', ') || '未分类',
               tags: item.tags || [],
               file_size: item.file_size,
-              mime_type: item.mime_type
+              mime_type: item.mime_type,
+              is_deleted: item.is_deleted || false
             }))
             
             // 调试信息：查看第一个资源的URL处理结果
@@ -339,7 +370,8 @@ export default {
         category: '清朝, 娱乐',
         tags: ['清朝', '娱乐'],
         file_size: 1024,
-        mime_type: 'image/jpeg'
+        mime_type: 'image/jpeg',
+        is_deleted: i === 2 // 模拟第三条数据被删除
       }))
       this.total = 15 // 模拟15条记录，分2页
     },
@@ -398,13 +430,59 @@ export default {
         this.$message.success('已复制分享链接到剪贴板')
         navigator.clipboard.writeText(window.location.href)
       }
+    },
+
+    // 处理删除按钮点击
+    handleDeleteClick(item) {
+      this.deleteItem = item;
+      this.showDeleteConfirm = true;
+    },
+
+    // 确认删除资源
+    // 修改后的confirmDelete方法
+async confirmDelete() {
+  if (!this.deleteItem) return;
+  
+  try {
+    // 尝试使用POST方法而不是DELETE
+    const response = await fetch(`http://8.134.51.50:6060/api/v1/file/delete/${this.deleteItem.id}`, {
+      method: 'POST', // 改为POST方法
+      headers: {
+        'Authorization': this.getAuthToken(),
+        'Accept': 'application/json',
+        'Content-Type': 'application/json' // 添加Content-Type
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP错误! 状态码: ${response.status}`);
     }
+
+    const data = await response.json();
+    
+    if (data.code === 200) {
+      this.$message.success('删除成功');
+      // 更新资源状态为已删除
+      const index = this.resources.findIndex(item => item.id === this.deleteItem.id);
+      if (index !== -1) {
+        this.resources[index].is_deleted = true;
+      }
+    } else {
+      this.$message.error(`删除失败: ${data.message}`);
+    }
+  } catch (error) {
+    console.error('删除资源失败:', error);
+    this.$message.error('删除失败，请稍后重试');
+  } finally {
+    this.showDeleteConfirm = false;
+    this.deleteItem = null;
+  }
+}
   }
 }
 </script>
 
 <style scoped>
-/* 搜索框样式优化 */
 /* 搜索框样式优化 */
 .search-container {
   position: sticky;
@@ -534,6 +612,38 @@ export default {
 .resource-card:hover {
   transform: translateY(-8px);
   box-shadow: 0 12px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* 已删除资源的样式 */
+.resource-card.deleted-resource {
+  opacity: 0.7;
+  border-color: #7a3c09;
+}
+
+.resource-card.deleted-resource .card-image {
+  filter: grayscale(50%);
+}
+
+.deleted-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+}
+
+.deleted-badge {
+  background: #9a423b;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-weight: bold;
+  font-size: 18px;
 }
 
 /* 网格布局优化 */
@@ -681,22 +791,116 @@ export default {
   line-height: 1.3;
   display: -webkit-box;
   -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+  -webkit-box-ororient: vertical;
   overflow: hidden;
+}
+
+/* 修改卡片底部布局 */
+.card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: auto;
 }
 
 .stats {
   display: flex;
-  justify-content: space-between;
+  gap: 15px; /* 调整统计信息之间的间距 */
   color: #666;
   font-size: 20px;
-  margin-top: auto; /* 将统计信息推到底部 */
 }
 
 .stat-view, .stat-like {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+/* 删除按钮样式 */
+.delete-button {
+  padding: 6px 12px;
+  background-color: #f9fafb;
+  border: 2px dashed #cccccc;
+  border-radius: 24px;
+  color: #000000ff;
+  cursor: pointer;
+  font-size: 18px;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.delete-button:hover {
+  background-color: #fff2f0;
+  border-color: #ffccc7;
+}
+
+/* 删除确认弹窗样式 */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.delete-confirm-modal {
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+  width: 400px;
+  max-width: 90%;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.delete-confirm-modal h3 {
+  margin: 0 0 15px;
+  color: #333;
+  font-size: 20px;
+}
+
+.delete-confirm-modal p {
+  margin: 0 0 20px;
+  color: #666;
+  font-size: 16px;
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.cancel-button, .confirm-button {
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.cancel-button {
+  background: #f5f5f5;
+  border: 1px solid #d9d9d9;
+  color: #666;
+}
+
+.cancel-button:hover {
+  background: #e6e6e6;
+}
+
+.confirm-button {
+  background: #ff4d4f;
+  border: 1px solid #ff4d4f;
+  color: white;
+}
+
+.confirm-button:hover {
+  background: #f5222d;
 }
 
 /* 加载状态样式优化 */
@@ -817,6 +1021,17 @@ export default {
   
   .card-body h3 {
     font-size: 22px;
+  }
+
+  /* 移动端调整卡片底部布局 */
+  .card-footer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .delete-button {
+    align-self: flex-end;
   }
 }
 
