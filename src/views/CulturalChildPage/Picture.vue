@@ -59,56 +59,50 @@
         当前分类：{{ currentBranch.parent_branch }} > {{ currentBranch.name }}
       </p>
     </div>
-    
-    <!-- 资源网格 -->
-    <div class="resource-container">
-      <div v-if="resources.length === 0 && !isLoading" class="empty-tip">
-        <img src="@/assets/empty.png" alt="暂无数据">
-        <p>当前分类下暂无资源</p>
-      </div>
 
-      <div v-else class="resource-grid">
-        <div 
-          v-for="item in resources" 
-          :key="item.id" 
-          class="resource-card"
-          :class="{ 'deleted-resource': item.is_deleted }"
-          @click="showDetail(item)"
+<!-- 资源网格 -->
+<div class="resource-container">
+  <div v-if="resources.length === 0 && !isLoading" class="empty-tip">
+    <img src="@/assets/empty.png" alt="暂无数据">
+    <p>当前分类下暂无资源</p>
+  </div>
+
+  <div v-else class="resource-grid">
+    <div 
+      v-for="item in resources" 
+      :key="item.id" 
+      class="resource-card"
+      @click="showDetail(item)"
+    >
+      <div class="card-image">
+        <img 
+          :src="getImageUrl(item.image)" 
+          :alt="item.title"
+          @error="handleImageError(item)"
         >
-          <!-- 已删除标记 -->
-          <div v-if="item.is_deleted" class="deleted-overlay">
-            <div class="deleted-badge">已删除</div>
-          </div>
-          
-          <div class="card-image">
-            <img 
-              :src="getImageUrl(item.image)" 
-              :alt="item.title"
-              @error="handleImageError(item)"
-            >
-            <div class="card-hover">
-              <span>点击查看详情</span>
-            </div>
-          </div>
-          <div class="card-body">
-            <h3>{{ item.title }}</h3>
-            <div class="card-footer">
-              <div class="stats">
-                <span class="stat-view">👁️ {{ item.views }}</span>
-                <span class="stat-like">❤️ {{ item.likes }}</span>
-              </div>
-              <!-- 删除按钮 - 仅对未删除资源显示 -->
-              <button 
-                v-if="!item.is_deleted"
-                class="delete-button"
-                @click.stop="handleDeleteClick(item)"
-              >
-                × 删除本资源
-              </button>
-            </div>
-          </div>
+        <div class="card-hover">
+          <span>点击查看详情</span>
         </div>
       </div>
+      <div class="card-body">
+        <h3>{{ item.title }}</h3>
+        <div class="card-footer">
+          <div class="stats">
+            <span class="stat-view">👁️ {{ item.views }}</span>
+            <span class="stat-like">❤️ {{ item.likes }}</span>
+          </div>
+          <!-- 删除按钮 -->
+          <button 
+            class="delete-button"
+            @click.stop="handleDeleteClick(item)"
+          >
+            × 删除本资源
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
       
       <!-- 分页器 -->
       <div class="pagination-container" v-if="total > 0">
@@ -444,13 +438,12 @@ async confirmDelete() {
   if (!this.deleteItem) return;
   
   try {
-    // 尝试使用POST方法而不是DELETE
     const response = await fetch(`http://8.134.51.50:6060/api/v1/file/delete/${this.deleteItem.id}`, {
-      method: 'POST', // 改为POST方法
+      method: 'POST',
       headers: {
         'Authorization': this.getAuthToken(),
         'Accept': 'application/json',
-        'Content-Type': 'application/json' // 添加Content-Type
+        'Content-Type': 'application/json'
       }
     });
 
@@ -462,11 +455,8 @@ async confirmDelete() {
     
     if (data.code === 200) {
       this.$message.success('删除成功');
-      // 更新资源状态为已删除
-      const index = this.resources.findIndex(item => item.id === this.deleteItem.id);
-      if (index !== -1) {
-        this.resources[index].is_deleted = true;
-      }
+      // 删除成功后重新获取资源列表
+      this.fetchResources();
     } else {
       this.$message.error(`删除失败: ${data.message}`);
     }
@@ -614,37 +604,7 @@ async confirmDelete() {
   box-shadow: 0 12px 20px rgba(0, 0, 0, 0.1);
 }
 
-/* 已删除资源的样式 */
-.resource-card.deleted-resource {
-  opacity: 0.7;
-  border-color: #7a3c09;
-}
 
-.resource-card.deleted-resource .card-image {
-  filter: grayscale(50%);
-}
-
-.deleted-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 5;
-}
-
-.deleted-badge {
-  background: #9a423b;
-  color: white;
-  padding: 8px 16px;
-  border-radius: 4px;
-  font-weight: bold;
-  font-size: 18px;
-}
 
 /* 网格布局优化 */
 .resource-grid {
