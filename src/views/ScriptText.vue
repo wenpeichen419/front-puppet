@@ -3,6 +3,13 @@
         <div class="header">
             <h1>剧本库</h1>
             <p class="subtitle">点击卡片查看完整剧本内容</p>
+            <el-button
+                type="primary"
+                class="upload-btn"
+                @click="openUploadDialog"
+            >
+                上传剧本
+            </el-button>
         </div>
 
         <!-- 剧本列表展示 -->
@@ -38,12 +45,16 @@
                 <div v-if="!currentScript.images || currentScript.images.length === 0" style="color:#888;">暂无相关剧本图片</div>
             </div>
         </div>
+
+        <!-- 上传剧本对话框 -->
+        <ScriptUploadDialog ref="uploadDialog" @upload-success="handleUploadSuccess" />
     </div>
 </template>
 
 <script setup lang="ts">
 import { ElMessage } from 'element-plus';
 import { ref, onMounted } from 'vue';
+import ScriptUploadDialog from '@/components/ScriptUploadDialog.vue';
 
 // 定义剧本类型
 interface Script {
@@ -76,6 +87,7 @@ const scripts = ref<any[]>([]);
 // 状态管理
 const showDetail = ref(false);
 const currentScript = ref<any>({});
+const uploadDialog = ref();
 
 async function fetchScripts(skip = 0, limit = 20) {
     const url = `http://8.134.51.50:6060/api/v1/script/list?skip=${skip}&limit=${limit}&file_type=image`;
@@ -128,6 +140,17 @@ const truncateText = (text: string, length: number) => {
     return text.substring(0, length) + '...';
 };
 
+// 打开上传对话框
+const openUploadDialog = () => {
+    uploadDialog.value.openDialog();
+};
+
+// 处理上传成功
+const handleUploadSuccess = () => {
+    // 重新获取剧本列表
+    fetchScripts(0, 50);
+};
+
 // 页面加载时获取剧本
 onMounted(() => {
     fetchScripts(0, 50);
@@ -159,6 +182,30 @@ onMounted(() => {
 .header .subtitle {
     color: #8a4734;
     font-style: italic;
+}
+
+.upload-btn {
+    position: absolute;
+    top: 10px;
+    right: 0;
+    height: 50px;
+    background-color: #6e2c1b;
+    border-color: #6e2c1b;
+    color: white;
+    font-weight: 500;
+    padding: 10px 20px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.upload-btn:hover {
+    background-color: #5a2416;
+    border-color: #5a2416;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(110, 44, 27, 0.3);
 }
 
 .script-cards {

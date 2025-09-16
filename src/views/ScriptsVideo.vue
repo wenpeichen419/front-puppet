@@ -1,6 +1,15 @@
 <template>
   <div>
-    <h2 class="script-main-text">剧目 - 视频</h2>
+    <div class="header-section">
+      <h2 class="script-main-text">剧目 - 视频</h2>
+      <el-button 
+        type="primary" 
+        class="upload-btn"
+        @click="openVideoUpload"
+      >
+        上传视频
+      </el-button>
+    </div>
     <div class="scripts-page">
       <div class="script-item" v-for="script in scripts" :key="script.id" @click="goToVideo(script.id)">
         <div class="script-cover">
@@ -18,14 +27,25 @@
         </div>
       </div>
     </div>
+    
+    <!-- VideoUploadDialog 组件 -->
+    <VideoUploadDialog 
+      ref="videoUploadDialog" 
+      @upload-success="handleUploadSuccess" 
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import VideoUploadDialog from '@/components/VideoUploadDialog.vue';
 
 const router = useRouter();
+
+// VideoUploadDialog 的引用
+const videoUploadDialog = ref();
+
 interface Script {
   id: number | string;
   title: string;
@@ -35,7 +55,7 @@ interface Script {
 
 const scripts = ref<Script[]>([]);
 
-async function fetchScriptsFromBackend(skip = 0, limit = 10) {
+async function fetchScriptsFromBackend(skip = 0, limit = 20) {
   try {
     const res = await fetch(`http://8.134.51.50:6060/api/v1/opera/list?skip=${skip}&limit=${limit}`, {
       method: 'GET',
@@ -66,22 +86,57 @@ onMounted(() => {
 function goToVideo(id: number | string) {
   router.push(`/video/${id}`);
 }
+
 function handleImgError(event: Event) {
   (event.target as HTMLImageElement).src = new URL('../assets/puppet-default.jpeg', import.meta.url).href;
+}
+
+// 打开视频上传对话框
+function openVideoUpload() {
+  videoUploadDialog.value.openDialog();
+}
+
+// 处理视频上传成功
+function handleUploadSuccess() {
+  // 重新获取视频列表
+  scripts.value = []; // 清空当前列表
+  fetchScriptsFromBackend(); // 重新加载
 }
 </script>
 
 <style scoped>
-.script-main-text {
-  margin-top: 40px;
-  color: #6e2c1b;
+.header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 40px 30px 0 30px;
   border-bottom: 2px solid #6e2c1b;
   padding-bottom: 10px;
+}
+
+.script-main-text {
+  color: #6e2c1b;
   font-weight: bold;
-  position: sticky;
-  top: -30px;
-  margin-left: 30px;
-  margin-right: 30px;
+  margin: 0;
+}
+
+.upload-btn {
+  background-color: #6e2c1b;
+  border-color: #6e2c1b;
+  font-weight: bold;
+  border-radius: 8px;
+  padding: 8px 20px;
+  transition: all 0.3s ease;
+  height: 50px;
+  display: flex;
+  justify-content: center;
+}
+
+.upload-btn:hover {
+  background-color: #5a2416;
+  border-color: #5a2416;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(110, 44, 27, 0.3);
 }
 
 .scripts-page {
