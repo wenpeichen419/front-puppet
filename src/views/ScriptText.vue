@@ -42,7 +42,33 @@
 </template>
 
 <script setup lang="ts">
+import { ElMessage } from 'element-plus';
 import { ref, onMounted } from 'vue';
+
+// 定义剧本类型
+interface Script {
+    id: number;
+    title: string;
+    description: string;
+    author: string;
+    script_url: string;
+    image_url: string[];
+    created_at: string;
+    updated_at: string;
+}
+
+interface ApiResponse {
+    code: number;
+    message: string;
+    data: {
+        scripts: Script[];
+        total: number;
+        skip: number;
+        limit: number;
+        returned: number;
+    };
+    timestamp: string;
+}
 
 // 剧本数据
 const scripts = ref<any[]>([]);
@@ -52,64 +78,36 @@ const showDetail = ref(false);
 const currentScript = ref<any>({});
 
 async function fetchScripts(skip = 0, limit = 20) {
-    const url = `http://8.134.51.50:6060/api/v1/file/list?skip=${skip}&limit=${limit}&file_type=image`;
+    const url = `http://8.134.51.50:6060/api/v1/script/list?skip=${skip}&limit=${limit}&file_type=image`;
     try {
         const res = await fetch(url, {
             method: "GET",
             headers: {
-                'Authorization': localStorage.getItem("cookie")
+                'Authorization': localStorage.getItem("cookie") || ''
             }
         });
-        const data = await res.json();
-        if (data.code === 200 && data.data && Array.isArray(data.data.files)) {
-            scripts.value = data.data.files
-                .filter((f: any) => Array.isArray(f.tags) && f.tags.includes('test'))
-                .map((f: any, idx: number) => ({
-                    id: f.file_id || idx,
-                    title: f.file_title || '无标题',
-                    content: f.description || 'none',
-                    author: f.uploaded_by || 'none',
-                    images: [f.file_url]
-                }));
+        const data: ApiResponse = await res.json();
+        
+        if (data.code === 200) {
+            // 将返回的剧本数据添加到 scripts 数组中
+            scripts.value = data.data.scripts.map((script: Script) => ({
+                id: script.id,
+                title: script.title,
+                content: script.description,
+                author: script.author,
+                images: script.image_url || [], 
+                script_url: script.script_url, 
+                created_at: script.created_at,
+                updated_at: script.updated_at
+            }));
+            ElMessage.success(data.message);
         } else {
-            scripts.value = getSampleScripts();
+            ElMessage.error(data.message || '获取剧本列表失败');
         }
     } catch (e) {
-        scripts.value = getSampleScripts();
+        console.error('获取剧本列表错误:', e);
+        ElMessage.error('网络错误，请稍后重试');
     }
-}
-
-function getSampleScripts() {
-    return [
-        {
-            id: 'sample-1',
-            title: '示例剧本一：三打白骨精',
-            content: '这是一个经典的皮影戏剧本，讲述了孙悟空如何三次识破白骨精的诡计，保护唐僧西天取经的故事。',
-            author: '吴承恩 (改编)',
-            images: ['/src/assets/puppet-example.jpg']
-        },
-        {
-            id: 'sample-2',
-            title: '示例剧本二：哪吒闹海',
-            content: '本剧本改编自中国古典神话，描绘了小英雄哪吒反抗龙王，为民除害的英勇事迹，情节曲折，引人入胜。',
-            author: '神话传说 (改编)',
-            images: ['/src/assets/puppet1.jpg']
-        },
-        {
-            id: 'sample-3',
-            title: '示例剧本三：沉香救母',
-            content: '一个感人至深的故事，讲述了沉香为了救出被压在华山下的母亲，历经千辛万苦，最终拜师学艺，劈山救母。',
-            author: '民间故事 (改编)',
-            images: ['/src/assets/puppet2.jpg']
-        },
-        {
-            id: 'sample-4',
-            title: '示例剧本四：西游记之火焰山',
-            content: '师徒四人行至火焰山，酷热难当，悟空三借芭蕉扇，与牛魔王、铁扇公主斗智斗勇，最终成功灭火，继续西行。',
-            author: '吴承恩 (改编)',
-            images: ['/src/assets/puppet.png']
-        }
-    ];
 }
 
 // 显示剧本详情

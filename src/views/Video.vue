@@ -5,15 +5,17 @@
       <source :src="video.url" type="video/mp4">
       您的浏览器不支持 video 标签。
     </video>
+    <p>(Video url: {{ video.url }})</p>
     <div class="video-info">
+      <p>视频简介：</p>
       <p>{{ video.description }}</p>
       <div class="video-stats">
-        <div style="display: flex; align-items: center; gap: 5px; font-size: 18px;">
+        <!-- <div style="display: flex; align-items: center; gap: 5px; font-size: 18px;">
           <img src="@/assets/view.png" alt="播放数" style="width: 18px; height: 18px;"/>
           <span style="margin-right: 10px;">{{ video.views }}</span>
           <img src="@/assets/thumbs-up.png" alt="点赞数" style="width: 18px; height: 18px;"/>
           <span style="margin-right: 10px;">{{ video.likes }}</span>
-        </div>
+        </div> -->
       </div>
     </div>
     <button @click="goBack" class="back-button">返回列表</button>
@@ -34,21 +36,19 @@ export default {
   created() {
     const videoId = this.$route.params.id;
     console.log(localStorage.getItem("cookie"))
-    axios.get(`http://8.134.51.50:6060/api/v1/file/info/${videoId}`, {
+    axios.get(`http://8.134.51.50:6060/api/v1/opera/info/${videoId}`, {
       headers: {
         "Authorization": localStorage.getItem("cookie"),
       }
     })
       .then(response => {
-        if (response.data && response.data.code === 200 && response.data.data) {
+        if (response.data.code === 200) {
           const file = response.data.data;
           this.video = {
-            id: file.file_id,
-            title: file.file_title,
+            id: file.id,
+            title: file.title,
             description: file.description,
-            url: file.file_url,
-            views: file.download_count, 
-            likes: 0 
+            url: file.video_url,
           };
         } else {
           this.video = {

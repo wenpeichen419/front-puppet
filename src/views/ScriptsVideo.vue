@@ -10,10 +10,10 @@
           <h3>{{ script.title }}</h3>
           <p>{{ script.description }}</p>
           <div style="display: flex; align-items: center; gap: 5px; font-size: 20px;">
-            <img src="@/assets/view.png" alt="播放数" style="width: 20px; height: 20px;" />
+            <!-- <img src="@/assets/view.png" alt="播放数" style="width: 20px; height: 20px;" />
             <span style="margin-right: 10px;">{{ script.views }}</span>
             <img src="@/assets/thumbs-up.png" alt="播放数" style="width: 20px; height: 20px;" />
-            <span style="margin-right: 10px;">{{ script.likes }}</span>
+            <span style="margin-right: 10px;">{{ script.likes }}</span> -->
           </div>
         </div>
       </div>
@@ -26,31 +26,31 @@ import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
-const scripts = ref([
-  { id: 1, title: '三国演义·空城计', description: '诸葛亮巧设空城计，退敌保西城，智谋传千古。', coverUrl: new URL('../assets/puppet-default.jpeg', import.meta.url).href, views: 1024, likes: 12 },
-  { id: 2, title: '白蛇传·断桥相会', description: '许仙白娘子西湖断桥重逢，情深意切感天动地。', coverUrl: new URL('../assets/puppet-default.jpeg', import.meta.url).href, views: 512, likes: 12 },
-  { id: 3, title: '杨家将·穆桂英挂帅', description: '巾帼英雄穆桂英临危受命，挂帅出征保家卫国。', coverUrl: new URL('../assets/puppet-default.jpeg', import.meta.url).href, views: 2048, likes: 12 },
-  { id: 4, title: '梁山伯与祝英台', description: '化蝶双飞传佳话，凄美爱情动人心弦。', coverUrl: new URL('../assets/puppet-default.jpeg', import.meta.url).href, views: 2048, likes: 12 }
-]);
+interface Script {
+  id: number | string;
+  title: string;
+  description: string;
+  coverUrl: string;
+}
+
+const scripts = ref<Script[]>([]);
 
 async function fetchScriptsFromBackend(skip = 0, limit = 10) {
   try {
-    const res = await fetch(`http://8.134.51.50:6060/api/v1/file/list?skip=${skip}&limit=${limit}&file_type=video`, {
+    const res = await fetch(`http://8.134.51.50:6060/api/v1/opera/list?skip=${skip}&limit=${limit}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': localStorage.getItem("cookie")
+        'Authorization': localStorage.getItem("cookie") || ''
       },
     });
     const data = await res.json();
-    if (data.code === 200 && Array.isArray(data.data?.files)) {
-      const backendScripts = data.data.files.map((file: any) => ({
-        id: file.file_id,
-        title: file.file_title,
+    if (data.code === 200) {
+      const backendScripts = data.data.items.map((file: any) => ({
+        id: file.id,
+        title: file.title,
         description: file.description,
-        coverUrl: file.file_url,
-        views: file.download_count ?? 0,
-        likes: 0 // 后端没有likes字段，默认0
+        coverUrl: file.cover,
       }));
       scripts.value = scripts.value.concat(backendScripts);
     }

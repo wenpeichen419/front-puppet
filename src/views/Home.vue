@@ -57,50 +57,8 @@ export default {
   name: 'Home',
   data() {
     return {
-      newsItems: [
-        { id: 1, title: '高州木偶戏在全国巡演中大获成功', description: '本次巡演历时三个月，足迹遍布全国十余个城市，受到了各地观众的热烈欢迎。' },
-        { id: 2, title: '新剧目《三打白骨精》即将上演', description: '经过精心打磨，经典剧目《三打白骨精》将以全新的面貌与观众见面，敬请期待。' },
-        { id: 3, title: '专访木偶戏非遗传承人', description: '我们有幸采访到了国家级非物质文化遗产传承人，听他讲述木偶戏的传承与创新。' },
-        { id: 4, title: '进击的巨人完结', description: '米卡萨表示艾伦脸都不要了。' }
-      ],
-      inheritors: [
-        {
-          id: 1,
-          name: "陈德林",
-          title: "国家级非物质文化遗产传承人",
-          description: "从事木偶戏表演与制作50余年，掌握高州木偶戏传统技艺的全部精髓，代表作品包括《西游记》系列等。",
-          major: ["木偶制作", "表演", "剧本创作"],
-          worked_from: "1970年至今",
-          avatar: "https://sse-market-source-1320172928.cos.ap-guangzhou.myqcloud.com/src/images/resized/1755689316883705962_1718866108467171886610826.jpg"
-        },
-        {
-          id: 2,
-          name: "林巧玲",
-          title: "省级非物质文化遗产传承人",
-          description: "专注木偶声腔演唱与操控技艺研究，善于将传统技艺与现代元素融合，培养了多名优秀接班人。",
-          major: ["声腔演唱", "木偶操控"],
-          worked_from: "1985年至今",
-          avatar: "https://sse-market-source-1320172928.cos.ap-guangzhou.myqcloud.com/src/images/resized/1755689316883705962_1718866108467171886610826.jpg"
-        },
-        {
-          id: 3,
-          name: "黄志强",
-          title: "高州木偶戏艺术团团长",
-          description: "致力于木偶戏的创新与推广，组织多次国内外巡演，为高州木偶戏走向国际舞台做出重要贡献。",
-          major: ["艺术管理", "表演", "推广"],
-          worked_from: "1990年至今",
-          avatar: "https://sse-market-source-1320172928.cos.ap-guangzhou.myqcloud.com/src/images/resized/1755689316883705962_1718866108467171886610826.jpg"
-        },
-        {
-          id: 4,
-          name: "张丽华",
-          title: "木偶戏剧本创作专家",
-          description: "专注于木偶戏剧本的改编与创作，将传统故事与现代价值观相结合，创作了多部深受观众喜爱的作品。",
-          major: ["剧本创作", "理论研究"],
-          worked_from: "1995年至今",
-          avatar: "https://sse-market-source-1320172928.cos.ap-guangzhou.myqcloud.com/src/images/resized/1755689316883705962_1718866108467171886610826.jpg"
-        }
-      ],
+      newsItems: [],
+      inheritors: [],
       carouselImages: [
         images['/src/assets/play0.png'],
         images['/src/assets/play1.png'],
