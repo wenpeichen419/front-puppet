@@ -298,14 +298,15 @@ export default {
 </style>
 
 <style>
-/* 设置对话框的最大高度和滚动 */
 .script-upload-dialog {
+  display: flex;
+  flex-direction: column;
   max-height: 80vh;
-  overflow-y: scroll;
+  overflow: hidden;
 }
 
 .script-upload-dialog .el-dialog__body {
-  max-height: calc(80vh - 120px);
+  flex: 1;
   overflow-y: auto;
   padding: 20px;
 }

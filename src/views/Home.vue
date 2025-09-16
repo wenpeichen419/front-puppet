@@ -81,18 +81,16 @@ export default {
         });
         const result = await response.json();
 
-        if (result.code === 200 && result.data && result.data.items) {
+        if (result.code >= 200 && result.code < 300) {
           this.inheritors = [
             ...this.inheritors,
             ...result.data.items
           ];
         } else {
           ElMessage.error('Failed to fetch inheritors data: ' + (result.message || 'Unknown error'));
-          console.error('Failed to fetch inheritors data:', result.message);
         }
       } catch (error) {
         ElMessage.error('Error fetching inheritors: ' + (error.message || 'Unknown error'));
-        console.error('Error fetching inheritors:', error);
       }
     },
     async fetchNewsItems(skip, limit) {

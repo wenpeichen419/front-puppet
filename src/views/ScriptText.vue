@@ -162,7 +162,6 @@ onMounted(() => {
     margin-top: 10px;
     min-height: 85vh;
     padding: 24px;
-    background-color: #fdf7f5;
     color: #3a1a13;
 }
 
