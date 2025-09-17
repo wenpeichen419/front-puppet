@@ -34,6 +34,9 @@
     </div>
 
     <h2 class="news_title">新闻动态</h2>
+    <div style="margin: 20px 30px; text-align: right;">
+      <el-button type="primary" @click="isNewsUploadDialogVisible = true">上传新闻</el-button>
+    </div>
     <div>
       <div>
         <div class="news-item" v-for="news in newsItems" :key="news.id" @click="goToNewsDetail(news.id)">
@@ -44,19 +47,32 @@
       </div>
     </div>
 
+    <!-- 新闻上传按钮 -->
+    <div class="upload-news-button" @click="isNewsUploadDialogVisible = true">
+      <el-button type="primary" icon="el-icon-upload">上传新闻</el-button>
+    </div>
+
+    <!-- 新闻上传弹窗 -->
+    <news-upload-dialog v-model:visible="isNewsUploadDialogVisible" @upload-success="handleUploadSuccess"></news-upload-dialog>
+
   </div>
 </template>
 
 <script>
 import { ElMessage } from 'element-plus';
+import NewsUploadDialog from '@/components/NewsUploadDialog.vue';
 
 // 动态导入图片
 const images = import.meta.glob('@/assets/play*.png', { eager: true, import: 'default' });
 
 export default {
   name: 'Home',
+  components: {
+    NewsUploadDialog
+  },
   data() {
     return {
+      isNewsUploadDialogVisible: false,
       newsItems: [],
       inheritors: [],
       carouselImages: [
@@ -69,6 +85,10 @@ export default {
   methods: {
     goToNewsDetail(newsId) {
       this.$router.push(`/news/${newsId}`)
+    },
+    handleUploadSuccess() {
+      this.newsItems = [];
+      this.fetchNewsItems(0, 10);
     },
     async fetchInheritors(skip, limit) {
       try {
@@ -307,6 +327,11 @@ export default {
   padding: 6px 12px;
   border-radius: 20px;
   border: 1px solid #e8e8e8;
+}
+
+.upload-news-button {
+  text-align: center;
+  margin: 20px 0;
 }
 
 @media (max-width: 768px) {
