@@ -1,13 +1,9 @@
 <template>
   <div class="resource-index">
     <!-- 资源示例图 -->
-    <img src="@/assets/puppet-example.jpg" alt="木偶戏示例" class="resource-img" />
+    <img src="@/assets/resource_welcome.png" alt="木偶戏示例" class="resource-img" />
     
-    <!-- 欢迎内容 -->
-    <div class="welcome-content">
-      <h2>欢迎来到文化资源库</h2>
-      <p>请从左侧选择资源类型开始浏览</p>
-    </div>
+
   </div>
 </template>
 

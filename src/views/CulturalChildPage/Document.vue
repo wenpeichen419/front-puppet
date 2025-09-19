@@ -11,7 +11,7 @@
       <div class="search-box">
         <div class="search-fields">
           <div class="search-field">
-            <span class="search-label">年代代：</span>
+            <span class="search-label">年代：</span>
             <select v-model="era" class="search-select">
               <option value="">全部</option>
               <option value="清朝">清朝</option>
