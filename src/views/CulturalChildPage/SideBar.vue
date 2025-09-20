@@ -22,12 +22,7 @@
         >
           视频
         </li>
-        <li 
-          @click="navigateTo('audio')"
-          :class="{ 'active': currentType === 'audio' }"
-        >
-          音频
-        </li>
+
       </ul>
     </div>
   </aside>
@@ -59,10 +54,6 @@ export default {
           video: {
             fileType: 'video',
             branchId: 'vid_001'
-          },
-          audio: {
-            fileType: 'audio',
-            branchId: 'aud_001'
           },
           literature: {
             fileType: 'document',
