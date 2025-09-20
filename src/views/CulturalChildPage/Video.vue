@@ -90,9 +90,18 @@
           </div>
           <div class="card-body">
             <h3>{{ item.title }}</h3>
-            <div class="stats">
-              <span class="stat-view">👁️ {{ item.views }}</span>
-              <span class="stat-like">❤️ {{ item.likes }}</span>
+            <div class="card-footer">
+              <div class="stats">
+                <span class="stat-view">👁️ {{ item.views }}</span>
+                <span class="stat-like">❤️ {{ item.likes }}</span>
+              </div>
+              <!-- 删除按钮 -->
+              <button 
+                class="delete-button"
+                @click.stop="handleDeleteClick(item)"
+              >
+                × 删除本资源
+              </button>
             </div>
           </div>
         </div>
@@ -183,7 +192,18 @@
             ❤️ 点赞 ({{ selectedItem.likes }})
           </button>
        
-     
+        </div>
+      </div>
+    </div>
+
+    <!-- 删除确认弹窗 -->
+    <div v-if="showDeleteConfirm" class="modal-overlay">
+      <div class="delete-confirm-modal">
+        <h3>确认删除</h3>
+        <p>确定要删除资源 "{{ deleteItem?.title }}" 吗？</p>
+        <div class="modal-buttons">
+          <button class="cancel-button" @click="showDeleteConfirm = false">取消</button>
+          <button class="confirm-button" @click="confirmDelete">确定</button>
         </div>
       </div>
     </div>
@@ -204,12 +224,13 @@ export default {
       resources: [],
       currentBranch: null,
       isLoading: false,
-      isDownloading: false,
       fallbackImage: fallbackImage,
       era: '',
       theme: '',
       title: '',
-      fileBaseUrl: 'http://8.134.51.50:6060'
+      fileBaseUrl: 'http://8.134.51.50:6060',
+      showDeleteConfirm: false,
+      deleteItem: null
     }
   },
   computed: {
@@ -316,163 +337,6 @@ export default {
       }
     },
 
-    // 下载方法
-async downloadResource(item) {
-  this.isDownloading = true;
-  try {
-    console.log('开始下载，文件ID:', item.id);
-    
-    // 1. 获取下载URL
-    const urlResponse = await fetch(`http://8.134.51.50:6060/api/v1/file/url/${item.id}`, {
-      method: 'GET',
-      headers: {
-        'Authorization': this.getAuthToken(),
-        'Accept': 'application/json'
-      }
-    });
-
-    if (!urlResponse.ok) {
-      throw new Error(`获取下载链接失败，状态码: ${urlResponse.status}`);
-    }
-
-    const urlData = await urlResponse.json();
-    
-    if (urlData.code !== 200 || !urlData.data?.download_url) {
-      throw new Error(`获取下载链接失败: ${urlData.message || '未返回有效链接'}`);
-    }
-    
-    const downloadUrl = urlData.data.download_url;
-    console.log('下载链接:', downloadUrl);
-    
-    // 2. 使用最可靠的方法：创建iframe并设置超时
-    this.downloadWithIframe(downloadUrl, item.title);
-    
-    this.$message.success('下载请求已发送，请检查浏览器下载列表');
-    
-  } catch (error) {
-    console.error('下载失败:', error);
-    this.isDownloading = false;
-    this.$message.error(`下载失败: ${error.message}`);
-  }
-},
-
-// 可靠的iframe下载方法
-downloadWithIframe(url, filename) {
-  return new Promise((resolve) => {
-    try {
-      console.log('使用iframe下载:', url);
-      
-      const iframe = document.createElement('iframe');
-      iframe.style.display = 'none';
-      iframe.src = url;
-      
-      // 设置超时清理
-      const cleanup = () => {
-        if (iframe.parentNode) {
-          document.body.removeChild(iframe);
-        }
-        this.isDownloading = false;
-        resolve();
-      };
-      
-      // 5秒后自动清理
-      setTimeout(cleanup, 5000);
-      
-      // 添加到页面
-      document.body.appendChild(iframe);
-      
-    } catch (error) {
-      console.error('iframe下载失败:', error);
-      this.isDownloading = false;
-      resolve();
-    }
-  });
-},
-
-    // 带认证的下载方法
-    async downloadWithAuth(url, filename) {
-      try {
-        console.log('带认证下载:', url);
-        
-        const response = await fetch(url, {
-          headers: {
-            'Authorization': this.getAuthToken()
-          }
-        });
-
-        if (!response.ok) {
-          throw new Error(`下载请求失败: ${response.status} ${response.statusText}`);
-        }
-
-        // 获取文件blob
-        const blob = await response.blob();
-        
-        // 创建下载链接
-        const downloadUrl = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = downloadUrl;
-        link.download = filename || 'video.mp4';
-        
-        // 触发下载
-        document.body.appendChild(link);
-        link.click();
-        
-        // 清理资源
-        setTimeout(() => {
-          document.body.removeChild(link);
-          window.URL.revokeObjectURL(downloadUrl);
-          this.isDownloading = false;
-          this.$message.success('下载完成！');
-        }, 100);
-
-      } catch (error) {
-        console.error('认证下载失败:', error);
-        
-        // 备用方案：使用iframe下载
-        this.downloadWithIframe(url, filename);
-      }
-    },
-
-    // iframe下载方法
-    downloadWithIframe(url, filename) {
-      try {
-        console.log('使用iframe下载:', url);
-        
-        const iframe = document.createElement('iframe');
-        iframe.style.display = 'none';
-        iframe.src = url;
-        document.body.appendChild(iframe);
-        
-        // 设置超时清理
-        setTimeout(() => {
-          if (iframe.parentNode) {
-            document.body.removeChild(iframe);
-          }
-          this.isDownloading = false;
-          this.$message.info('下载请求已发送');
-        }, 5000);
-        
-      } catch (iframeError) {
-        console.error('iframe下载失败:', iframeError);
-        
-        // 最后方案：在新窗口打开
-        this.downloadWithNewWindow(url);
-      }
-    },
-
-    // 新窗口下载方法
-    downloadWithNewWindow(url) {
-      try {
-        window.open(url, '_blank');
-        this.isDownloading = false;
-        this.$message.info('在新标签页中打开下载');
-      } catch (error) {
-        console.error('新窗口下载失败:', error);
-        this.isDownloading = false;
-        this.$message.error('所有下载方式都失败了，请手动复制链接下载');
-      }
-    },
-
     // 查看详情时也通过info接口获取最新信息
     async showDetail(item) {
       this.isLoading = true;
@@ -507,23 +371,6 @@ downloadWithIframe(url, filename) {
       this.$message.success('点赞成功！');
     },
 
-    shareResource(item) {
-      if (navigator.share) {
-        navigator.share({
-          title: item.title,
-          text: item.description,
-          url: window.location.href
-        }).then(() => {
-          this.$message.success('分享成功！');
-        }).catch(e => {
-          console.log('分享取消:', e);
-          this.$message.info('分享已取消');
-        });
-      } else {
-        navigator.clipboard.writeText(window.location.href);
-        this.$message.success('分享链接已复制到剪贴板');
-      }
-    },
 
     formatDate(dateString) {
       if (!dateString) return '未知日期';
@@ -562,6 +409,49 @@ downloadWithIframe(url, filename) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     },
     
+    // 处理删除按钮点击
+    handleDeleteClick(item) {
+      this.deleteItem = item;
+      this.showDeleteConfirm = true;
+    },
+
+    // 确认删除资源
+    async confirmDelete() {
+      if (!this.deleteItem) return;
+      
+      try {
+        const response = await fetch(`http://8.134.51.50:6060/api/v1/file/delete/${this.deleteItem.id}`, {
+          method: 'POST',
+          headers: {
+            'Authorization': this.getAuthToken(),
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP错误! 状态码: ${response.status}`);
+        }
+
+        const data = await response.json();
+        
+        if (data.code === 200) {
+          this.$message.success('删除成功');
+          // 删除成功后重新获取资源列表
+          this.fetchResources();
+        } else {
+          this.$message.error(`删除失败: ${data.message}`);
+        }
+      } catch (error) {
+        console.error('删除资源失败:', error);
+        this.$message.error('删除失败，请稍后重试');
+      } finally {
+        this.showDeleteConfirm = false;
+        this.deleteItem = null;
+      }
+    },
+    
+    // 本地测试数据
     useLocalData() {
       this.resources = Array.from({length: 9}, (_, i) => ({
         id: i + 1,
@@ -582,7 +472,6 @@ downloadWithIframe(url, filename) {
   }
 }
 </script>
-
 
 <style scoped>
 /* 搜索框样式优化 */
@@ -639,9 +528,9 @@ downloadWithIframe(url, filename) {
 .search-select,
 .search-input {
   padding: 14px 16px;
-  border: none; /* 去掉默认边框 */
-  border-bottom: 3px solid #d0c8b8; /* 只保留下边框 */
-  border-radius: 10px; /* 下边框风格不需要圆角 */
+  border: none;
+  border-bottom: 3px solid #d0c8b8;
+  border-radius: 10px;
   font-size: 22px;
   width: 100%;
   box-sizing: border-box;
@@ -649,7 +538,6 @@ downloadWithIframe(url, filename) {
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-/* 聚焦时强化下边框颜色 */
 .search-select:focus,
 .search-input:focus {
   outline: none;
@@ -766,9 +654,9 @@ downloadWithIframe(url, filename) {
 /* 卡片内部样式优化 */
 .card-image {
   position: relative;
-  height: 220px; /* 固定图片区域高度 */
+  height: 220px;
   overflow: hidden;
-  background: #f9f2e7; /* 添加背景色填充空白 */
+  background: #f9f2e7;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -777,8 +665,8 @@ downloadWithIframe(url, filename) {
 .card-image img {
   width: 100%;
   height: 100%;
-  object-fit: contain; /* 保持图片比例 */
-  background: #ffffffff; /* 图片内部的背景色 */
+  object-fit: contain;
+  background: #ffffffff;
 }
 
 .resource-card:hover .card-image img {
@@ -851,11 +739,11 @@ downloadWithIframe(url, filename) {
 
 .card-body {
   padding: 20px;
-  flex: 1; /* 让内容区域填充剩余空间 */
+  flex: 1;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  min-height: 130px; /* 设置内容区域最小高度 */
+  min-height: 130px;
 }
 
 .card-body h3 {
@@ -869,18 +757,112 @@ downloadWithIframe(url, filename) {
   overflow: hidden;
 }
 
-.stats {
+/* 修改卡片底部布局 */
+.card-footer {
   display: flex;
   justify-content: space-between;
+  align-items: center;
+  margin-top: auto;
+}
+
+.stats {
+  display: flex;
+  gap: 15px;
   color: #666;
   font-size: 20px;
-  margin-top: auto; /* 将统计信息推到底部 */
 }
 
 .stat-view, .stat-like {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+/* 删除按钮样式 */
+.delete-button {
+  padding: 6px 12px;
+  background-color: #f9fafb;
+  border: 2px dashed #cccccc;
+  border-radius: 24px;
+  color: #000000ff;
+  cursor: pointer;
+  font-size: 18px;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.delete-button:hover {
+  background-color: #fff2f0;
+  border-color: #ffccc7;
+}
+
+/* 删除确认弹窗样式 */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.delete-confirm-modal {
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+  width: 400px;
+  max-width: 90%;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.delete-confirm-modal h3 {
+  margin: 0 0 15px;
+  color: #333;
+  font-size: 20px;
+}
+
+.delete-confirm-modal p {
+  margin: 0 0 20px;
+  color: #666;
+  font-size: 16px;
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.cancel-button, .confirm-button {
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.cancel-button {
+  background: #f5f5f5;
+  border: 1px solid #d9d9d9;
+  color: #666;
+}
+
+.cancel-button:hover {
+  background: #e6e6e6;
+}
+
+.confirm-button {
+  background: #ff4d4f;
+  border: 1px solid #ff4d4f;
+  color: white;
+}
+
+.confirm-button:hover {
+  background: #f5222d;
 }
 
 /* 分页器样式优化 */
@@ -964,20 +946,6 @@ downloadWithIframe(url, filename) {
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
-}
-
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.7);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-  padding: 20px;
 }
 
 .modal-content {
@@ -1113,15 +1081,6 @@ downloadWithIframe(url, filename) {
   background-color: #c9e5f2;
 }
 
-.download-btn {
-  background-color: #e1f8e6;
-  color: #5cb85c;
-}
-
-.download-btn:hover {
-  background-color: #c6ecc6;
-}
-
 /* 响应式设计优化 */
 @media (max-width: 1200px) {
   .search-fields {
@@ -1222,6 +1181,17 @@ downloadWithIframe(url, filename) {
     min-width: 120px;
     justify-content: center;
   }
+
+  /* 移动端调整卡片底部布局 */
+  .card-footer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .delete-button {
+    align-self: flex-end;
+  }
 }
 
 @media (max-width: 576px) {
@@ -1259,4 +1229,3 @@ downloadWithIframe(url, filename) {
   }
 }
 </style>
-    
