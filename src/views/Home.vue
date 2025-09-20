@@ -35,7 +35,7 @@
 
     <h2 class="news_title">新闻动态</h2>
     <div style="margin: 20px 30px; text-align: right;">
-      <el-button type="primary" @click="isNewsUploadDialogVisible = true">上传新闻</el-button>
+      <el-button type="primary" @click="isNewsUploadDialogVisible = true" class="upload-news-button">上传新闻</el-button>
     </div>
     <div>
       <div>
@@ -48,9 +48,9 @@
     </div>
 
     <!-- 新闻上传按钮 -->
-    <div class="upload-news-button" @click="isNewsUploadDialogVisible = true">
+    <!-- <div class="upload-news-button" @click="isNewsUploadDialogVisible = true">
       <el-button type="primary" icon="el-icon-upload">上传新闻</el-button>
-    </div>
+    </div> -->
 
     <!-- 新闻上传弹窗 -->
     <news-upload-dialog v-model:visible="isNewsUploadDialogVisible" @upload-success="handleUploadSuccess"></news-upload-dialog>
@@ -142,13 +142,30 @@ export default {
     }
   },
   mounted() {
-    this.fetchInheritors(0, 10);
-    this.fetchNewsItems(0, 10);
+    this.fetchInheritors(0, 50);
+    this.fetchNewsItems(0, 50);
   }
 };
 </script>
 
 <style scoped>
+.upload-news-button {
+  background-color: #6e2c1b;
+  border-color: #6e2c1b;
+  font-weight: bold;
+  border-radius: 8px;
+  padding: 8px 20px;
+  transition: all 0.3s ease;
+  height: 50px;
+}
+
+.upload-news-button:hover {
+    background-color: #5a2416;
+    border-color: #5a2416;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(110, 44, 27, 0.3);
+}
+
 #home-page {
   overflow-y: scroll;
   max-height: 870px;
@@ -329,10 +346,10 @@ export default {
   border: 1px solid #e8e8e8;
 }
 
-.upload-news-button {
+/* .upload-news-button {
   text-align: center;
   margin: 20px 0;
-}
+} */
 
 @media (max-width: 768px) {
   .inheritors-section {

@@ -10,7 +10,7 @@
         上传视频
       </el-button>
     </div>
-    <div class="scripts-page">
+    <div class="scripts-page" v-loading="isLoading">
       <div class="script-item" v-for="script in scripts" :key="script.id" @click="goToVideo(script.id)">
         <div class="script-cover">
           <img :src="script.coverUrl" :alt="script.title" @error="handleImgError">
@@ -45,6 +45,7 @@ const router = useRouter();
 
 // VideoUploadDialog 的引用
 const videoUploadDialog = ref();
+const isLoading = ref(false);
 
 interface Script {
   id: number | string;
@@ -55,7 +56,8 @@ interface Script {
 
 const scripts = ref<Script[]>([]);
 
-async function fetchScriptsFromBackend(skip = 0, limit = 20) {
+async function fetchScriptsFromBackend(skip = 0, limit = 50) {
+  isLoading.value = true;
   try {
     const res = await fetch(`http://8.134.51.50:6060/api/v1/opera/list?skip=${skip}&limit=${limit}`, {
       method: 'GET',
@@ -76,6 +78,8 @@ async function fetchScriptsFromBackend(skip = 0, limit = 20) {
     }
   } catch (e) {
 
+  } finally {
+    isLoading.value = false;
   }
 }
 

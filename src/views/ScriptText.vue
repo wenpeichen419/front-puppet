@@ -13,7 +13,7 @@
         </div>
 
         <!-- 剧本列表展示 -->
-        <div v-if="!showDetail" class="script-cards">
+        <div v-if="!showDetail" class="script-cards" v-loading="isLoading">
             <div v-for="script in scripts" :key="script.id" class="script-card" @click="showScriptDetail(script)">
                 <div class="script-card-content">
                     <h3>{{ script.title }}</h3>
@@ -88,8 +88,10 @@ const scripts = ref<any[]>([]);
 const showDetail = ref(false);
 const currentScript = ref<any>({});
 const uploadDialog = ref();
+const isLoading = ref(false);
 
-async function fetchScripts(skip = 0, limit = 20) {
+async function fetchScripts(skip = 0, limit = 50) {
+    isLoading.value = true;
     const url = `http://8.134.51.50:6060/api/v1/script/list?skip=${skip}&limit=${limit}&file_type=image`;
     try {
         const res = await fetch(url, {
@@ -119,6 +121,8 @@ async function fetchScripts(skip = 0, limit = 20) {
     } catch (e) {
         console.error('获取剧本列表错误:', e);
         ElMessage.error('网络错误，请稍后重试');
+    } finally {
+        isLoading.value = false;
     }
 }
 

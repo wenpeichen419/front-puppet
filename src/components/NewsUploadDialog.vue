@@ -11,7 +11,7 @@
         <el-input v-model="form.description" type="textarea"></el-input>
       </el-form-item>
       <el-form-item label="内容" prop="content">
-        <el-input v-model="form.content" type="textarea" :rows="5"></el-input>
+        <el-input v-model="form.content" type="textarea" :rows="15"></el-input>
       </el-form-item>
     </el-form>
     <template #footer>
