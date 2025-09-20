@@ -182,20 +182,8 @@
           >
             ❤️ 点赞 ({{ selectedItem.likes }})
           </button>
-          <button 
-            class="modal-btn share-btn"
-            @click="shareResource(selectedItem)"
-          >
-            🔗 分享
-          </button>
-          <button 
-            class="modal-btn download-btn"
-            @click="downloadResource(selectedItem)"
-            :disabled="isDownloading"
-          >
-            <span v-if="!isDownloading">⬇️ 下载视频</span>
-            <span v-if="isDownloading">⏳ 下载中...</span>
-          </button>
+       
+     
         </div>
       </div>
     </div>
@@ -221,14 +209,13 @@ export default {
       era: '',
       theme: '',
       title: '',
-      fileBaseUrl: 'http://8.134.51.50:6060' // 添加基础URL
+      fileBaseUrl: 'http://8.134.51.50:6060'
     }
   },
   computed: {
     totalPages() {
       return Math.ceil(this.total / this.pageSize)
     },
-    // 从localStorage获取token的计算属性
     authToken() {
       return localStorage.getItem("cookie") || '';
     }
@@ -241,14 +228,9 @@ export default {
       return this.authToken
     },
     
-    // 添加URL处理方法
     getFullUrl(url) {
       if (!url) return '';
-      
-      // 如果已经是完整URL，直接返回
       if (url.startsWith('http')) return url;
-      
-      // 如果是相对路径，添加基础URL
       return `${this.fileBaseUrl}${url.startsWith('/') ? url : '/' + url}`;
     },
     
@@ -306,7 +288,6 @@ export default {
       }
     },
 
-    // 新增：通过info接口获取资源详细信息
     async fetchResourceInfo(fileId) {
       try {
         const response = await fetch(`http://8.134.51.50:6060/api/v1/file/info/${fileId}`, {
@@ -335,14 +316,15 @@ export default {
       }
     },
 
-    // 优化的下载功能：处理相对URL问题
-    async downloadResource(item) {
+    // 下载方法
+async downloadResource(item) {
   this.isDownloading = true;
   try {
     console.log('开始下载，文件ID:', item.id);
     
-    // 1. 直接调用url接口获取下载链接
+    // 1. 获取下载URL
     const urlResponse = await fetch(`http://8.134.51.50:6060/api/v1/file/url/${item.id}`, {
+      method: 'GET',
       headers: {
         'Authorization': this.getAuthToken(),
         'Accept': 'application/json'
@@ -354,146 +336,140 @@ export default {
     }
 
     const urlData = await urlResponse.json();
-    console.log('URL接口返回的完整数据:', urlData);
     
     if (urlData.code !== 200 || !urlData.data?.download_url) {
       throw new Error(`获取下载链接失败: ${urlData.message || '未返回有效链接'}`);
     }
     
-    // 2. 检查返回的URL
-    let actualDownloadUrl = urlData.data.download_url;
-    console.log('后端返回的原始下载链接:', actualDownloadUrl);
+    const downloadUrl = urlData.data.download_url;
+    console.log('下载链接:', downloadUrl);
     
-    // 3. 修正端口问题（6061 → 6060）
-    if (actualDownloadUrl.includes(':6061/')) {
-      actualDownloadUrl = actualDownloadUrl.replace(':6061/', ':6060/');
-      console.log('修正端口后的链接:', actualDownloadUrl);
-    }
+    // 2. 使用最可靠的方法：创建iframe并设置超时
+    this.downloadWithIframe(downloadUrl, item.title);
     
-    // 4. 使用带认证的下载方法
-    this.downloadWithAuth(actualDownloadUrl, item.title);
+    this.$message.success('下载请求已发送，请检查浏览器下载列表');
     
-    this.$message.success('开始下载视频文件');
-
   } catch (error) {
-    console.error('视频下载失败:', error);
+    console.error('下载失败:', error);
+    this.isDownloading = false;
     this.$message.error(`下载失败: ${error.message}`);
-    this.isDownloading = false;
   }
 },
 
-// 带认证的下载方法
-async downloadWithAuth(url, filename) {
-  try {
-    console.log('带认证下载:', url);
-    
-    // 方法1：使用fetch + blob（确保携带认证）
-    const response = await fetch(url, {
-      headers: {
-        'Authorization': this.getAuthToken()
-      }
-    });
-
-    if (!response.ok) {
-      throw new Error(`下载请求失败: ${response.status} ${response.statusText}`);
-    }
-
-    // 获取文件blob
-    const blob = await response.blob();
-    
-    // 创建下载链接
-    const downloadUrl = window.URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = downloadUrl;
-    link.download = filename || 'video.mp4';
-    
-    // 触发下载
-    document.body.appendChild(link);
-    link.click();
-    
-    // 清理资源
-    setTimeout(() => {
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(downloadUrl);
+// 可靠的iframe下载方法
+downloadWithIframe(url, filename) {
+  return new Promise((resolve) => {
+    try {
+      console.log('使用iframe下载:', url);
+      
+      const iframe = document.createElement('iframe');
+      iframe.style.display = 'none';
+      iframe.src = url;
+      
+      // 设置超时清理
+      const cleanup = () => {
+        if (iframe.parentNode) {
+          document.body.removeChild(iframe);
+        }
+        this.isDownloading = false;
+        resolve();
+      };
+      
+      // 5秒后自动清理
+      setTimeout(cleanup, 5000);
+      
+      // 添加到页面
+      document.body.appendChild(iframe);
+      
+    } catch (error) {
+      console.error('iframe下载失败:', error);
       this.isDownloading = false;
-    }, 100);
-
-    console.log('下载完成');
-
-  } catch (error) {
-    console.error('认证下载失败:', error);
-    
-    // 方法2：降级方案 - 使用iframe（携带cookie）
-    this.downloadWithIframe(url);
-  }
-},
-
-// iframe下载方法（用于降级）
-downloadWithIframe(url) {
-  try {
-    console.log('使用iframe下载:', url);
-    
-    const iframe = document.createElement('iframe');
-    iframe.style.display = 'none';
-    
-    // 在URL中添加token参数（如果后端支持）
-    const downloadUrl = new URL(url);
-    if (this.getAuthToken()) {
-      downloadUrl.searchParams.append('token', this.getAuthToken());
+      resolve();
     }
-    
-    iframe.src = downloadUrl.toString();
-    document.body.appendChild(iframe);
-    
-    // 设置超时清理
-    setTimeout(() => {
-      if (iframe.parentNode) {
-        document.body.removeChild(iframe);
-      }
-      this.isDownloading = false;
-    }, 10000);
-    
-  } catch (iframeError) {
-    console.error('iframe下载也失败:', iframeError);
-    this.isDownloading = false;
-    this.$message.error('所有下载方式都失败了');
-  }
+  });
 },
 
-    // 备用下载方案
-    async fallbackDownload(item) {
+    // 带认证的下载方法
+    async downloadWithAuth(url, filename) {
       try {
-        const directUrl = this.getFullUrl(item.videoUrl);
-        console.log('使用备用下载URL:', directUrl);
+        console.log('带认证下载:', url);
         
-        const response = await fetch(directUrl, {
+        const response = await fetch(url, {
           headers: {
             'Authorization': this.getAuthToken()
           }
         });
 
         if (!response.ok) {
-          throw new Error(`直接下载失败，状态码: ${response.status}`);
+          throw new Error(`下载请求失败: ${response.status} ${response.statusText}`);
         }
 
+        // 获取文件blob
         const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
+        
+        // 创建下载链接
+        const downloadUrl = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
-        link.href = url;
-        link.download = item.title || 'video';
+        link.href = downloadUrl;
+        link.download = filename || 'video.mp4';
+        
+        // 触发下载
         document.body.appendChild(link);
         link.click();
-
+        
+        // 清理资源
         setTimeout(() => {
           document.body.removeChild(link);
-          window.URL.revokeObjectURL(url);
+          window.URL.revokeObjectURL(downloadUrl);
+          this.isDownloading = false;
+          this.$message.success('下载完成！');
         }, 100);
 
-        this.$message.success('下载成功！');
+      } catch (error) {
+        console.error('认证下载失败:', error);
+        
+        // 备用方案：使用iframe下载
+        this.downloadWithIframe(url, filename);
+      }
+    },
 
-      } catch (fallbackError) {
-        console.error('备用下载方案也失败:', fallbackError);
-        this.$message.error('所有下载方式都失败了');
+    // iframe下载方法
+    downloadWithIframe(url, filename) {
+      try {
+        console.log('使用iframe下载:', url);
+        
+        const iframe = document.createElement('iframe');
+        iframe.style.display = 'none';
+        iframe.src = url;
+        document.body.appendChild(iframe);
+        
+        // 设置超时清理
+        setTimeout(() => {
+          if (iframe.parentNode) {
+            document.body.removeChild(iframe);
+          }
+          this.isDownloading = false;
+          this.$message.info('下载请求已发送');
+        }, 5000);
+        
+      } catch (iframeError) {
+        console.error('iframe下载失败:', iframeError);
+        
+        // 最后方案：在新窗口打开
+        this.downloadWithNewWindow(url);
+      }
+    },
+
+    // 新窗口下载方法
+    downloadWithNewWindow(url) {
+      try {
+        window.open(url, '_blank');
+        this.isDownloading = false;
+        this.$message.info('在新标签页中打开下载');
+      } catch (error) {
+        console.error('新窗口下载失败:', error);
+        this.isDownloading = false;
+        this.$message.error('所有下载方式都失败了，请手动复制链接下载');
       }
     },
 
@@ -506,7 +482,7 @@ downloadWithIframe(url) {
         
         this.selectedItem = {
           ...item,
-          ...(resourceInfo || {}), // 合并info接口返回的详细信息
+          ...(resourceInfo || {}),
           views: (item.views || 0) + 1,
           uploadDate: this.formatDate(resourceInfo?.created_at || item.created_at)
         };
@@ -586,7 +562,6 @@ downloadWithIframe(url) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     },
     
-    // 本地测试数据
     useLocalData() {
       this.resources = Array.from({length: 9}, (_, i) => ({
         id: i + 1,
