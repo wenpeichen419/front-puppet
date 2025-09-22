@@ -286,7 +286,7 @@ export default {
             id: item.file_id,
             title: item.file_title || '未命名视频',
             videoUrl: item.file_url,
-            thumbnail: `https://picsum.photos/seed/${item.file_id}/400/225`,
+            thumbnail: item.cover_url,
             duration: item.duration || 0,
             views: item.play_count || 0,
             likes: 0,

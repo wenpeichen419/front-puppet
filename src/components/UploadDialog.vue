@@ -41,7 +41,7 @@
         ></el-input>
       </el-form-item>
 
-      <el-form-item label="上传文件" prop="file">
+      <el-form-item label="上传资源文件" prop="file">
         <el-upload
           class="upload-demo"
           drag
@@ -54,6 +54,47 @@
           <i class="el-icon-upload"></i>
           <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
           <div class="el-upload__tip" slot="tip">可以上传任意类型的资源</div>
+        </el-upload>
+      </el-form-item>
+
+      <!-- 新增：上传资源封面图 -->
+      <el-form-item label="上传资源封面图（可选）" class="cover-upload">
+        <div class="cover-upload-tip" v-if="isImageFile">
+          <el-alert
+            title="图片类型资源将自动使用文件本身作为封面图"
+            type="info"
+            :closable="false"
+            show-icon>
+          </el-alert>
+        </div>
+        <el-upload
+          class="cover-upload-demo"
+          drag
+          action="#"
+          :auto-upload="false"
+          :on-change="handleCoverChange"
+          :on-remove="handleCoverRemove"
+          :file-list="coverFileList"
+          :limit="1"
+          :disabled="isImageFile"
+          :accept="isImageFile ? '' : 'image/*'"
+        >
+          <template v-if="isImageFile && fileList.length > 0">
+            <i class="el-icon-picture"></i>
+            <div class="el-upload__text">
+              <em>已自动设置为资源文件</em>
+            </div>
+            <div class="el-upload__tip" slot="tip">
+              图片资源将使用文件本身作为封面图
+            </div>
+          </template>
+          <template v-else>
+            <i class="el-icon-picture"></i>
+            <div class="el-upload__text">将封面图拖到此处，或<em>点击上传</em></div>
+            <div class="el-upload__tip" slot="tip">
+              支持 JPG、PNG 等图片格式，建议尺寸 300x400
+            </div>
+          </template>
         </el-upload>
       </el-form-item>
     </el-form>
@@ -73,12 +114,14 @@ export default {
     return {
       dialogVisible: false,
       fileList: [],
+      coverFileList: [],
       form: {
         file_title: '',
         eraTag: '',
         genreTag: '',
         description: '',
-        file: null
+        file: null,
+        coverFile: null // 新增：封面图文件
       },
       rules: {
         file_title: [
@@ -103,6 +146,14 @@ export default {
     // 从localStorage获取存储在cookie键下的token
     authToken() {
       return localStorage.getItem("cookie") || '';
+    },
+    // 判断上传的文件是否为图片类型
+    isImageFile() {
+      if (!this.form.file) return false;
+      
+      const fileName = this.form.file.name.toLowerCase();
+      const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp'];
+      return imageExtensions.some(ext => fileName.endsWith(ext));
     }
   },
   methods: {
@@ -125,6 +176,40 @@ export default {
       if (fileList.length > 0) {
         this.fileList = [fileList[fileList.length - 1]] // 只保留最新上传的文件
         this.form.file = file.raw
+        
+        // 如果新上传的文件是图片类型，自动设置封面图为同一文件
+        if (this.isImageFile) {
+          // 创建封面图文件的副本（避免引用同一对象）
+          const coverFileCopy = new File([this.form.file], this.form.file.name, {
+            type: this.form.file.type,
+            lastModified: this.form.file.lastModified
+          });
+          
+          this.form.coverFile = coverFileCopy;
+          this.coverFileList = [{
+            name: file.name,
+            size: file.size,
+            raw: coverFileCopy
+          }];
+        } else {
+          // 非图片类型文件，清除封面图
+          this.coverFileList = []
+          this.form.coverFile = null
+        }
+      }
+    },
+    // 新增：处理封面图上传（仅对非图片类型文件有效）
+    handleCoverChange(file, fileList) {
+      if (fileList.length > 0 && !this.isImageFile) {
+        this.coverFileList = [fileList[fileList.length - 1]] // 只保留最新上传的文件
+        this.form.coverFile = file.raw
+      }
+    },
+    // 新增：处理封面图删除
+    handleCoverRemove(file, fileList) {
+      if (!this.isImageFile) {
+        this.coverFileList = fileList
+        this.form.coverFile = fileList.length > 0 ? fileList[0].raw : null
       }
     },
     submitForm() {
@@ -146,6 +231,12 @@ export default {
       if (this.form.genreTag) formData.append('tags', this.form.genreTag);
       
       formData.append('description', this.form.description);
+      
+      // 新增：如果有封面图，添加到表单数据
+      // 图片类型资源会自动使用文件本身作为封面图
+      if (this.form.coverFile) {
+        formData.append('cover', this.form.coverFile);
+      }
 
       try {
         const response = await fetch('http://8.134.51.50:6060/api/v1/file/upload', {
@@ -174,12 +265,12 @@ export default {
     resetForm() {
       this.$refs.uploadForm.resetFields()
       this.fileList = []
+      this.coverFileList = []
       this.form.file = null
+      this.form.coverFile = null
     }
   }
 }
-
-
 </script>
 
 <style scoped>
@@ -189,10 +280,24 @@ export default {
 .upload-demo {
   width: 100%;
 }
+.cover-upload-demo {
+  width: 100%;
+}
 .el-upload-dragger {
   width: 100%;
 }
 .el-form-item {
   margin-bottom: 22px;
+}
+.cover-upload-tip {
+  margin-bottom: 10px;
+}
+.cover-upload-demo .el-upload-dragger {
+  background-color: #f5f7fa;
+  border: 1px dashed #d9d9d9;
+}
+.cover-upload-demo .el-upload-dragger.is-disabled {
+  background-color: #f5f5f5;
+  cursor: not-allowed;
 }
 </style>

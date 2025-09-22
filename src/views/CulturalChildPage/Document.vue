@@ -73,7 +73,8 @@
           v-for="item in resources" 
           :key="item.id" 
           class="resource-card"
-          @click="showDetail(item)"
+          @click="handleCardClick(item)"
+          :data-file-type="item.mime_type === 'application/pdf' ? 'pdf' : ''"
         >
           <div class="card-image">
             <!-- 文档预览图处理 -->
@@ -95,9 +96,18 @@
           </div>
           <div class="card-body">
             <h3>{{ item.title }}</h3>
-            <div class="stats">
-              <span class="stat-view">👁️ {{ item.views }}</span>
-              <span class="stat-like">❤️ {{ item.likes }}</span>
+            <div class="card-footer">
+              <div class="stats">
+                <span class="stat-view">👁️ {{ item.views }}</span>
+                <span class="stat-like">❤️ {{ item.likes }}</span>
+              </div>
+              <!-- 删除按钮 -->
+              <button 
+                class="delete-button"
+                @click.stop="handleDeleteClick(item)"
+              >
+                × 删除本资源
+              </button>
             </div>
           </div>
         </div>
@@ -127,8 +137,8 @@
       </div>
     </div>
     
-    <!-- 文档详情弹窗 -->
-    <div v-if="selectedItem" class="modal-overlay" @click="closeModal">
+    <!-- 文档详情弹窗 - 只显示非PDF文件 -->
+    <div v-if="selectedItem && selectedItem.mime_type !== 'application/pdf'" class="modal-overlay" @click="closeModal">
       <div class="modal-content" @click.stop>
         <div class="modal-header">
           <h3 class="modal-title">{{ selectedItem.title }}</h3>
@@ -137,42 +147,8 @@
         
         <div class="modal-body">
           <div class="document-viewer-container">
-            <!-- PDF预览区域 - 增强版 -->
-            <div v-if="selectedItem.mime_type === 'application/pdf'" class="pdf-viewer-container">
-              <div class="pdf-controls">
-                <div class="control-group">
-                  <button class="control-btn" @click="prevPage" :disabled="currentPdfPage <= 1">
-                    <i class="el-icon-arrow-left"></i> 上一页
-                  </button>
-                  <span class="page-info">第 {{ currentPdfPage }} 页 / 共 {{ totalPdfPages }} 页</span>
-                  <button class="control-btn" @click="nextPage" :disabled="currentPdfPage >= totalPdfPages">
-                    下一页 <i class="el-icon-arrow-right"></i>
-                  </button>
-                </div>
-                
-                <div class="zoom-controls">
-                  <button class="zoom-btn" @click="zoomOut">-</button>
-                  <span>{{ Math.round(zoom * 100) }}%</span>
-                  <button class="zoom-btn" @click="zoomIn">+</button>
-                </div>
-              </div>
-              
-              <div class="pdf-viewer" ref="pdfViewer">
-                <canvas v-for="page in totalPdfPages" :key="page" 
-                  :ref="`pdfCanvas-${page}`" 
-                  v-show="currentPdfPage === page"
-                  class="pdf-page-canvas">
-                </canvas>
-                
-                <div v-if="pdfLoading" class="pdf-loading">
-                  <div class="loading-spinner"></div>
-                  <p>加载PDF文档中...</p>
-                </div>
-              </div>
-            </div>
-            
             <!-- 其他文档类型显示图标 -->
-            <div v-else class="document-preview">
+            <div class="document-preview">
               <img 
                 :src="selectedItem.previewImage" 
                 :alt="selectedItem.title"
@@ -233,18 +209,39 @@
         </div>
       </div>
     </div>
+
+    <!-- 删除确认弹窗 -->
+    <div v-if="showDeleteConfirm" class="modal-overlay">
+      <div class="delete-confirm-modal">
+        <h3>确认删除</h3>
+        <p>确定要删除资源 "{{ deleteItem?.title }}" 吗？</p>
+        <div class="modal-buttons">
+          <button class="cancel-button" @click="showDeleteConfirm = false">取消</button>
+          <button class="confirm-button" @click="confirmDelete">确定</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
+// 修改PDF.js导入方式，使用兼容性更好的方式
+import * as pdfjsLib from 'pdfjs-dist';
+
+// 设置PDF.js worker路径 - 使用与库版本匹配的worker
+// 移除硬编码的worker版本，让PDF.js自动处理
+pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
+  'pdfjs-dist/build/pdf.worker.min.js',
+  import.meta.url
+).toString();
+
+// 或者使用CDN的稳定版本（与你的pdfjs-dist包版本匹配）
+// pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+
 import fallbackImage from '@/assets/image-error.png'
 import documentIcon from '@/assets/document-icon.png'
 import pdfIcon from '@/assets/pdf-icon.png'
 import wordIcon from '@/assets/word-icon.png'
-import * as pdfjsLib from 'pdfjs-dist/build/pdf';
-import 'pdfjs-dist/build/pdf.worker.entry';
-// 设置PDF.js worker路径
-pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js'
 
 export default {
   name: 'CulturalResourcesDocument',
@@ -268,21 +265,24 @@ export default {
         docx: wordIcon,
         default: documentIcon
       },
-      // 移除硬编码的authToken，改为通过computed属性获取
       
-      // PDF查看器相关状态
+      // PDF查看器相关状态（虽然现在PDF在新标签页打开，但保留部分状态以备不时之需）
       pdfDocument: null,
       currentPdfPage: 1,
       totalPdfPages: 0,
       zoom: 1.0,
-      pdfLoading: false
+      pdfLoading: false,
+      pdfLoadError: false,
+      
+      // 删除相关状态
+      showDeleteConfirm: false,
+      deleteItem: null
     }
   },
   computed: {
     totalPages() {
       return Math.ceil(this.total / this.pageSize)
     },
-    // 添加computed属性，从localStorage获取authToken，与其他组件保持一致
     authToken() {
       return localStorage.getItem("cookie") || '';
     }
@@ -292,7 +292,7 @@ export default {
   },
   methods: {
     getAuthToken() {
-      return this.authToken // 直接返回computed属性获取的token
+      return this.authToken
     },
     
     getFileExtension(filename) {
@@ -335,7 +335,7 @@ export default {
             id: item.file_id,
             title: item.file_title || '未命名',
             filename: item.filename,
-            previewImage: this.getFileIcon(item.filename),
+            previewImage: item.cover_url || this.getFileIcon(item.filename),
             fileUrl: item.file_url,
             views: item.download_count || 0,
             likes: 0,
@@ -366,7 +366,6 @@ export default {
       return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`
     },
     
-    // 格式化文件大小
     formatFileSize(bytes) {
       if (!bytes) return '未知'
       if (bytes < 1024) return `${bytes} B`
@@ -399,7 +398,7 @@ export default {
           uploadDate: '2023年1月1日',
           category: '清朝, 娱乐',
           tags: ['清朝', '娱乐'],
-          file_size: 1024 * 1024 * 2, // 2MB
+          file_size: 1024 * 1024 * 2,
           mime_type: 'application/pdf'
         }
       ]
@@ -410,74 +409,55 @@ export default {
       item.previewImage = this.fallbackImage
     },
 
-    // 显示文档详情
-    async showDetail(item) {
-      this.isLoading = true;
-      try {
-        // 获取最新的资源详情
-        const resourceInfo = await this.fetchResourceInfo(item.id);
-        
-        this.selectedItem = {
-          ...item,
-          ...(resourceInfo || {}),
-          views: (item.views || 0) + 1,
-          uploadDate: this.formatDate(resourceInfo?.created_at || item.created_at)
-        };
-        
-        document.body.style.overflow = 'hidden';
-        
-        // 如果是PDF，初始化PDF查看器
-        if (this.selectedItem.mime_type === 'application/pdf') {
-          await this.loadPdfDocument();
-        }
-      } finally {
-        this.isLoading = false;
-      }
-    },
-
-    // 加载PDF文档
-    async loadPdfDocument() {
-      if (!this.selectedItem || !this.selectedItem.fileUrl) return;
-      
-      this.pdfLoading = true;
-      try {
-        // 获取PDF文件的URL
-        const pdfUrl = await this.getPdfUrl();
-        
-        // 加载PDF文档
-        this.pdfDocument = await pdfjsLib.getDocument({
-          url: pdfUrl,
-          withCredentials: true,
-          httpHeaders: {
-            'Authorization': this.getAuthToken() // 使用动态获取的token
-          }
-        }).promise;
-        
-        this.totalPdfPages = this.pdfDocument.numPages;
-        this.currentPdfPage = 1;
-        
-        // 渲染第一页
-        await this.renderPage(this.currentPdfPage);
-      } catch (error) {
-        console.error('加载PDF失败:', error);
-        this.$message.error('加载PDF文档失败');
-      } finally {
-        this.pdfLoading = false;
+    // 修改卡片点击处理
+    handleCardClick(item) {
+      if (item.mime_type === 'application/pdf') {
+        // PDF文件：直接在新标签页打开
+        this.openPdfInNewTab(item);
+      } else {
+        // 其他文件：显示详情弹窗
+        this.showDetail(item);
       }
     },
     
-    // 获取PDF文件的URL
-    async getPdfUrl() {
-      // 如果fileUrl已经是可直接访问的URL，直接返回
-      if (this.selectedItem.fileUrl.startsWith('http')) {
-        return this.selectedItem.fileUrl;
+    // 在新标签页打开PDF
+    async openPdfInNewTab(item) {
+      try {
+        this.$message.info('正在打开PDF文档...');
+        
+        // 获取PDF的完整URL
+        const pdfUrl = await this.getPdfUrl(item);
+        
+        // 在新标签页打开
+        window.open(pdfUrl, '_blank', 'noopener,noreferrer');
+        
+        // 记录打开次数
+        this.recordPdfView(item.id);
+        
+      } catch (error) {
+        console.error('打开PDF失败:', error);
+        this.$message.error('打开PDF失败，请尝试下载后查看');
+        
+        // 失败时回退到详情弹窗
+        this.showDetail(item);
+      }
+    },
+    
+    // 修改getPdfUrl方法，支持传入item参数
+    async getPdfUrl(item = null) {
+      const targetItem = item || this.selectedItem;
+      let fileUrl = targetItem.fileUrl;
+      
+      // 如果已经是完整URL，直接返回
+      if (fileUrl.startsWith('http')) {
+        return fileUrl;
       }
       
-      // 否则尝试获取下载URL
+      // 尝试通过API获取下载URL
       try {
-        const response = await fetch(`/api/v1/file/url/${this.selectedItem.id}`, {
+        const response = await fetch(`http://8.134.51.50:6060/api/v1/file/url/${targetItem.id}`, {
           headers: {
-            'Authorization': this.getAuthToken(), // 使用动态获取的token
+            'Authorization': this.getAuthToken(),
             'Accept': 'application/json'
           }
         });
@@ -492,84 +472,71 @@ export default {
         console.error('获取PDF URL失败:', error);
       }
       
-      // 如果获取失败，返回原始fileUrl
-      return this.selectedItem.fileUrl;
+      // 如果API调用失败，构造完整URL
+      const baseUrl = 'http://8.134.51.50:6061';
+      if (fileUrl.startsWith('/')) {
+        return `${baseUrl}${fileUrl}`;
+      } else {
+        return `${baseUrl}/back-puppet/files/${fileUrl}`;
+      }
     },
     
-    // 渲染PDF页面
-    async renderPage(pageNumber) {
-      if (!this.pdfDocument || pageNumber < 1 || pageNumber > this.totalPdfPages) return;
-      
+    // 记录PDF查看次数
+    async recordPdfView(fileId) {
       try {
-        const page = await this.pdfDocument.getPage(pageNumber);
-        const canvas = this.$refs[`pdfCanvas-${pageNumber}`][0];
-        const context = canvas.getContext('2d');
-        
-        const viewport = page.getViewport({ scale: this.zoom });
-        canvas.height = viewport.height;
-        canvas.width = viewport.width;
-        
-        const renderContext = {
-          canvasContext: context,
-          viewport: viewport
-        };
-        
-        await page.render(renderContext).promise;
+        await fetch(`http://8.134.51.50:6060/api/v1/file/record-view/${fileId}`, {
+          method: 'POST',
+          headers: {
+            'Authorization': this.getAuthToken()
+          }
+        });
       } catch (error) {
-        console.error('渲染PDF页面失败:', error);
-      }
-    },
-    
-    // 上一页
-    async prevPage() {
-      if (this.currentPdfPage > 1) {
-        this.currentPdfPage--;
-        await this.renderPage(this.currentPdfPage);
-      }
-    },
-    
-    // 下一页
-    async nextPage() {
-      if (this.currentPdfPage < this.totalPdfPages) {
-        this.currentPdfPage++;
-        await this.renderPage(this.currentPdfPage);
-      }
-    },
-    
-    // 放大
-    async zoomIn() {
-      if (this.zoom < 2.5) {
-        this.zoom += 0.25;
-        await this.renderPage(this.currentPdfPage);
-      }
-    },
-    
-    // 缩小
-    async zoomOut() {
-      if (this.zoom > 0.5) {
-        this.zoom -= 0.25;
-        await this.renderPage(this.currentPdfPage);
+        console.error('记录查看次数失败:', error);
       }
     },
 
-    // 关闭详情弹窗
+    // 修改showDetail方法，跳过PDF文件
+    async showDetail(item) {
+      // PDF文件不显示详情弹窗
+      if (item.mime_type === 'application/pdf') {
+        return;
+      }
+      
+      this.isLoading = true;
+      try {
+        const resourceInfo = await this.fetchResourceInfo(item.id);
+        
+        this.selectedItem = {
+          ...item,
+          ...(resourceInfo || {}),
+          views: (item.views || 0) + 1,
+          uploadDate: this.formatDate(resourceInfo?.created_at || item.created_at)
+        };
+        
+        document.body.style.overflow = 'hidden';
+        
+      } finally {
+        this.isLoading = false;
+      }
+    },
+
     closeModal() {
       this.selectedItem = null;
       this.pdfDocument = null;
       this.currentPdfPage = 1;
       this.totalPdfPages = 0;
       this.zoom = 1.0;
+      this.pdfLoadError = false;
       document.body.style.overflow = '';
     },
 
-    // 获取资源详细信息
     async fetchResourceInfo(fileId) {
       try {
-        const response = await fetch(`/api/v1/file/info/${fileId}`, {
+        const response = await fetch(`http://8.134.51.50:6060/api/v1/file/info/${fileId}`, {
           method: 'GET',
           headers: {
             'Accept': 'application/json',
-            'Authorization': this.getAuthToken() // 使用动态获取的token
+            'Authorization': this.getAuthToken()
           }
         })
 
@@ -599,16 +566,14 @@ export default {
     async downloadResource(item) {
       this.isDownloading = true;
       try {
-        // 1. 获取资源基本信息
         const resourceInfo = await this.fetchResourceInfo(item.id);
         if (!resourceInfo) {
           throw new Error('无法获取资源详细信息');
         }
         
-        // 2. 获取实际下载链接
-        const urlResponse = await fetch(`/api/v1/file/url/${item.id}`, {
+        const urlResponse = await fetch(`http://8.134.51.50:6060/api/v1/file/url/${item.id}`, {
           headers: {
-            'Authorization': this.getAuthToken(), // 使用动态获取的token
+            'Authorization': this.getAuthToken(),
             'Accept': 'application/json'
           }
         });
@@ -617,17 +582,15 @@ export default {
           throw new Error(`获取下载链接失败，状态码: ${urlResponse.status}`);
         }
 
-        // 3. 解析下载链接
         const urlData = await urlResponse.json();
         if (urlData.code !== 200 || !urlData.data?.download_url) {
           throw new Error(`获取下载链接失败: ${urlData.message || '未返回有效链接'}`);
         }
+        
         const actualDownloadUrl = urlData.data.download_url;
-
-        // 4. 下载文件
         const downloadResponse = await fetch(actualDownloadUrl, {
           headers: {
-            'Authorization': this.getAuthToken(), // 使用动态获取的token
+            'Authorization': this.getAuthToken(),
             'Accept': resourceInfo.mime_type
           }
         });
@@ -636,10 +599,7 @@ export default {
           throw new Error(`下载文件失败，状态码: ${downloadResponse.status}`);
         }
 
-        // 5. 处理文件流
         const blob = await downloadResponse.blob();
-        
-        // 6. 创建下载链接
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
@@ -647,12 +607,10 @@ export default {
         document.body.appendChild(link);
         link.click();
 
-        // 7. 清理资源
         setTimeout(() => {
           document.body.removeChild(link);
           window.URL.revokeObjectURL(url);
           
-          // 更新下载次数
           if (this.selectedItem) {
             this.selectedItem.views = (this.selectedItem.views || 0) + 1;
           }
@@ -683,12 +641,68 @@ export default {
         navigator.clipboard.writeText(window.location.href);
         this.$message.success('分享链接已复制到剪贴板');
       }
+    },
+
+    // 处理删除按钮点击
+    handleDeleteClick(item) {
+      this.deleteItem = item;
+      this.showDeleteConfirm = true;
+    },
+
+    // 确认删除资源
+    async confirmDelete() {
+      if (!this.deleteItem) return;
+      
+      try {
+        const response = await fetch(`http://8.134.51.50:6060/api/v1/file/delete/${this.deleteItem.id}`, {
+          method: 'POST',
+          headers: {
+            'Authorization': this.getAuthToken(),
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP错误! 状态码: ${response.status}`);
+        }
+
+        const data = await response.json();
+        
+        if (data.code === 200) {
+          this.$message.success('删除成功');
+          // 删除成功后重新获取资源列表
+          this.fetchResources();
+        } else {
+          this.$message.error(`删除失败: ${data.message}`);
+        }
+      } catch (error) {
+        console.error('删除资源失败:', error);
+        this.$message.error('删除失败，请稍后重试');
+      } finally {
+        this.showDeleteConfirm = false;
+        this.deleteItem = null;
+      }
     }
   }
 }
 </script>
 
 <style scoped>
+.pdf-error {
+  text-align: center;
+  padding: 40px;
+  color: #d9534f;
+  background-color: #f8d7da;
+  border-radius: 8px;
+  margin: 20px 0;
+}
+
+.pdf-error-icon {
+  font-size: 48px;
+  margin-bottom: 15px;
+}
+
 /* 搜索框样式优化 */
 .search-container {
   position: sticky;
@@ -861,11 +875,26 @@ export default {
   flex-direction: column;
   height: auto;
   min-height: 350px;
+  cursor: pointer;
 }
 
 .resource-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 12px 20px rgba(0, 0, 0, 0.1);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* 为PDF卡片添加特殊标识 */
+.resource-card[data-file-type="pdf"]::after {
+  content: "PDF";
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #803c0f;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: bold;
 }
 
 /* 卡片头部样式 */
@@ -953,18 +982,99 @@ export default {
   overflow: hidden;
 }
 
-.stats {
+/* 修改卡片底部布局 */
+.card-footer {
   display: flex;
   justify-content: space-between;
+  align-items: center;
+  margin-top: auto;
+}
+
+.stats {
+  display: flex;
+  gap: 15px;
   color: #666;
   font-size: 20px;
-  margin-top: auto; /* 将统计信息推到底部 */
 }
 
 .stat-view, .stat-like {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+/* 删除按钮样式 */
+.delete-button {
+  padding: 6px 12px;
+  background-color: #f9fafb;
+  border: 2px dashed #cccccc;
+  border-radius: 24px;
+  color: #000000ff;
+  cursor: pointer;
+  font-size: 18px;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.delete-button:hover {
+  background-color: #fff2f0;
+  border-color: #ffccc7;
+}
+
+/* 删除确认弹窗样式 */
+.delete-confirm-modal {
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+  width: 400px;
+  max-width: 90%;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.delete-confirm-modal h3 {
+  margin: 0 0 15px;
+  color: #333;
+  font-size: 20px;
+}
+
+.delete-confirm-modal p {
+  margin: 0 0 20px;
+  color: #666;
+  font-size: 16px;
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.cancel-button, .confirm-button {
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.cancel-button {
+  background: #f5f5f5;
+  border: 1px solid #d9d9d9;
+  color: #666;
+}
+
+.cancel-button:hover {
+  background: #e6e6e6;
+}
+
+.confirm-button {
+  background: #ff4d4f;
+  border: 1px solid #ff4d4f;
+  color: white;
+}
+
+.confirm-button:hover {
+  background: #f5222d;
 }
 
 /* 分页器样式优化 */
@@ -1120,106 +1230,6 @@ export default {
   display: flex;
   flex-direction: column;
   gap: 20px;
-}
-
-/* PDF查看器样式 */
-.pdf-viewer-container {
-  width: 100%;
-  border-radius: 8px;
-  background-color: #f8f5f0;
-  overflow: hidden;
-  border: 1px solid #e0d4c3;
-}
-
-.pdf-controls {
-  padding: 15px 20px;
-  background-color: #f1e9dc;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid #e0d4c3;
-}
-
-.control-group {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-}
-
-.control-btn {
-  padding: 8px 12px;
-  background-color: #7a3c09;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  transition: background-color 0.2s;
-}
-
-.control-btn:disabled {
-  background-color: #ccc;
-  cursor: not-allowed;
-}
-
-.control-btn:hover:not(:disabled) {
-  background-color: #6a3408;
-}
-
-.page-info {
-  font-size: 16px;
-  color: #333;
-}
-
-.zoom-controls {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.zoom-btn {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: white;
-  border: 1px solid #ddd;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  font-size: 16px;
-  transition: all 0.2s;
-}
-
-.zoom-btn:hover {
-  background: #f0f0f0;
-}
-
-.pdf-viewer {
-  padding: 25px;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  min-height: 500px;
-  max-height: 70vh;
-  overflow-y: auto;
-  background: #f0f2f5;
-}
-
-.pdf-page-canvas {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  margin: 0 auto;
-}
-
-.pdf-loading {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 300px;
-  color: #803c0f;
 }
 
 .document-preview-img {
@@ -1397,16 +1407,6 @@ export default {
     max-width: 100%;
   }
   
-  .pdf-controls {
-    flex-direction: column;
-    gap: 15px;
-  }
-  
-  .control-group {
-    width: 100%;
-    justify-content: space-between;
-  }
-  
   .modal-footer {
     flex-wrap: wrap;
     justify-content: center;
@@ -1416,6 +1416,17 @@ export default {
     flex: 1;
     min-width: 120px;
     justify-content: center;
+  }
+
+  /* 移动端调整卡片底部布局 */
+  .card-footer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .delete-button {
+    align-self: flex-end;
   }
 }
 
