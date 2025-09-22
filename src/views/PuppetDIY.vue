@@ -26,7 +26,9 @@
               v-for="item in components[activeTab]"
               :key="item.name"
               class="component-item"
-              @click="applyComponent(item.src)"
+              @click="applyComponent(item, activeTab)" 
+              role="menuitem"
+              tabindex="0"
             >
               <img :src="item.src" :alt="item.name" class="component-img"/>
               <div class="component-name">{{ item.name }}</div>
@@ -51,6 +53,8 @@
 </template>
 
 <script>
+import axios from 'axios';
+
 export default {
   name: "DollDIY",
   data() {
@@ -58,26 +62,36 @@ export default {
       tabs: ['经典形象', '盔帽', '偶头', '服装'],
       activeTab: null,
       showRightPanel: false,
-      mainImage: '../src/assets/puppet.png',
-      description: '高凉太守冯宝，冯宝性格沉稳正直，常以文官形象出现，身着长袍、头戴冠帽，体现其为地方长官的身份。',
+      mainImage: '../src/assets/男1.png',
+      description: '你的自定义木偶：）',
       components: {
         '经典形象': [
-          {name: '形象1', src: '../src/assets/男1.png'},
-          {name: '形象2', src: '../src/assets/男2.png'}
+          {name: '冯宝',hat:"1",head:"2",clothes:"1", src: '../src/assets/男1.png',description:"冼夫人的丈夫冯宝，是高凉太守冯融之子，出身岭南豪族。两人联姻后，冼夫人凭借政治才能和威望，冯宝依靠家族势力与官职，共同治理岭南，为当地百姓安定生活奠定了基础。"},
+          {name: '小生',hat:"1",head:"1",clothes:"2", src: '../src/assets/男2.png',description:"小生是木偶戏和传统戏曲中的一种主要行当，通常扮演年轻文雅的男子，如书生、公子、才子或少年英雄。小生形象多为面容俊秀、气质儒雅，服饰以长衫、折扇为主，动作讲究斯文潇洒，唱腔清亮柔和，给人一种书卷气。"},
+          {name: '冼夫人',hat:"2",head:"3",clothes:"3", src: '../src/assets/冼夫人.png',description:"冼夫人（约522年—602年），名冼英，岭南高凉人。她是岭南历史上最有影响力的女政治家和军事家之一，积极辅佐中原王朝，维护岭南稳定，被后世尊称为“岭南圣母”。"}
         ],
         '盔帽': [
-          {name: '帽子1', src: '../src/assets/男冠.png'},
-          {name: '帽子2', src: '../src/assets/default-doll.png'}
+          {name: '男冠',component_id:"1", src: '../src/assets/男冠.png',description:"你的自定义木偶：）"},
+          {name: '羽冠',component_id:"2", src: '../src/assets/冼夫人羽冠.png',description:"你的自定义木偶：）"},
+          {name: '冠',component_id:"3", src: '../src/assets/冼夫人冠.png',description:"你的自定义木偶：）"},
         ],
         '偶头': [
-          {name: '偶头1', src: '../src/assets/男妆面1.png'},
-          {name: '偶头2', src: '../src/assets/男妆面2.png'}
+          {name: '偶头1',component_id:"2", src: '../src/assets/男妆面1.png',description:"你的自定义木偶：）"},
+          {name: '偶头2',component_id:"1", src: '../src/assets/男妆面2.png',description:"你的自定义木偶：）"},
+          {name: '偶头3',component_id:"3", src: '../src/assets/冼夫人妆面.png',description:"你的自定义木偶：）"}
         ],
         '服装': [
-          {name: '服装1', src: '../src/assets/男衣1.png'},
-          {name: '服装2', src: '../src/assets/男衣2.png'}
+          {name: '服装1',component_id:"1", src: '../src/assets/男衣1.png',description:"你的自定义木偶：）"},
+          {name: '服装2',component_id:"2", src: '../src/assets/男衣2.png',description:"你的自定义木偶：）"},
+          {name: '服装3',component_id:"3", src: '../src/assets/冼夫人衣服.png',description:"你的自定义木偶：）"}
         ]
-      }
+      },
+      selectedParts: {
+        // hat_id: '',
+        // head_id: '',
+        // clothes_id: ''
+      },
+      isImageChanging: false
     }
   },
   methods: {
@@ -90,10 +104,109 @@ export default {
       this.showRightPanel = false
       this.activeTab = null
     },
-    applyComponent(imgSrc) {
-      this.mainImage = imgSrc
+    applyComponent(item, tab) {
+      // 根据不同标签设置对应的ID
+      switch(tab) {
+        case '盔帽':
+          this.selectedParts.hat_id = item.component_id;
+          this.description=item.description;
+          break;
+        case '偶头':
+          this.selectedParts.head_id = item.component_id;
+          this.description=item.description;
+          break;
+        case '服装':
+          this.selectedParts.clothes_id = item.component_id;
+          this.description=item.description;
+          break;
+        case '经典形象':
+          // 经典形象特殊处理
+          this.selectedParts = {
+            hat_id:item.hat,
+            head_id:item.head,
+            clothes_id:item.clothes
+          };
+          this.description=item.description;
+          break;
+      }
+      
+      // 添加图片切换动画效果
+      this.isImageChanging = true;
+      
+      // 调用后端接口获取拼接后的图片
+      this.fetchCombinedImage();
+    },
+    
+    // 新增：调用后端接口获取拼接图片
+    async fetchCombinedImage() {
+  try {
+    // 创建FormData对象
+    const formData = new FormData();
+    // 添加参数到FormData
+    formData.append('hat_id', this.selectedParts.hat_id || '');
+    formData.append('head_id', this.selectedParts.head_id || '');
+    formData.append('clothes_id', this.selectedParts.clothes_id || '');
+
+    const response = await axios.post(
+      'http://8.134.51.50:6060/api/v1/puppet/combine_and_upload',
+      formData,
+      {
+        headers: {
+          'Authorization': `bearer ${this.getAuthToken()}`
+        }
+      }
+    );
+
+    // 处理响应
+    if (response.data.code === 200) {
+      setTimeout(() => {
+        this.mainImage = response.data.data.image_url;
+
+        this.isImageChanging = false;
+        this.hideRightPanel();
+      }, 300);
+    } else {
+      this.$message.error('图片拼接失败：' + response.data.message);
+      this.isImageChanging = false;
     }
+  } catch (error) {
+    console.error('接口请求失败：', error);
+    let errorMsg = '网络错误，图片拼接失败';
+    
+    if (error.message.includes('Network Error')) {
+      errorMsg = '网络连接异常，请检查网络后重试';
+    } else if (error.response) {
+      errorMsg = `服务器错误 (${error.response.status})，请稍后再试`;
+    } else if (error.request) {
+      errorMsg = '未收到服务器响应，请检查服务器状态';
+    }
+    
+    this.$message.error(errorMsg);
+    this.isImageChanging = false;
   }
+},
+    
+    // 新增：获取权限令牌的方法
+    getAuthToken() {
+      // 目前使用组件内的authToken，实际项目中建议从store或localStorage获取
+      this.authToken='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOiIxIiwicm9sZSI6ImFkbWluIiwiZW1haWwiOiIxMzQzMzEyNjc0MkAxNjMuY29tIiwic3RhdHVzIjoiYWN0aXZlIiwiZXhwIjoxNzU5MDMyMDAxfQ.FMLPv3rRETijhkRKqfmPDSPoNOA7e2UDq0wXLorJesE'
+      return this.authToken;
+    },
+    
+    // 修改：重置方法（同时重置选中的部件）
+    resetDoll() {
+      this.isImageChanging = true;
+      this.selectedParts = {
+        hat_id: '',
+        head_id: '',
+        clothes_id: ''
+      };
+      setTimeout(() => {
+        this.mainImage = this.initialImage;
+        this.isImageChanging = false;
+      }, 300);
+    }
+  },
 }
 </script>
 
@@ -201,7 +314,7 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 30px;
+  padding: 50px;
 }
 
 .display-content {
@@ -211,8 +324,8 @@ export default {
 }
 
 .doll-container {
-  width: 360px;
-  height: 450px;
+  width: 400px;
+  height: 500px;
   border-radius: 50%;
   overflow: hidden;
   border: 4px solid #d1d5db;
@@ -222,13 +335,14 @@ export default {
 .doll-image {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
 }
 
 .description {
   margin-top: 20px;
-  width: 320px;
+  width: 500px;
   text-align: center;
+  padding: 30px;
   color: #4b5563;
 }
 
