@@ -8,7 +8,7 @@
           <img src="@/assets/logo.png" alt="高州木偶戏Logo" />
         </div>
         <div class="search">
-          <input v-model="searchKeyword" type="text" placeholder="请输入关键词" />
+          <input v-model="searchKeyword" type="text" placeholder="搜索剧目" />
           <button @click="handleSearch">搜索</button>
         </div>
 
@@ -65,15 +65,14 @@ export default {
         return;
       }
       try {
-        const response = await fetch(`http://8.134.51.50:6060/api/v1/opera/list?skip=0&limit=100&search=${this.searchKeyword}`, {
+        const opearaResponse = await fetch(`http://8.134.51.50:6060/api/v1/opera/list?skip=0&limit=100&search=${this.searchKeyword}`, {
           method: "GET",
           headers: {
             'Authorization': localStorage.getItem("cookie") || ''
           }
         });
-        const data = await response.json();
+        const data = await opearaResponse.json();
         this.searchResults = data.data.items;
-        console.log(this.searchResults)
         this.searchResultsVisible = true;
       } catch (error) {
         console.error('Search failed:', error);
