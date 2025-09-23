@@ -8,14 +8,10 @@
           <img src="@/assets/logo.png" alt="高州木偶戏Logo" />
         </div>
         <div class="search">
-          <input
-            v-model="searchKeyword"
-            type="text"
-            placeholder="请输入关键词"
-          />
+          <input v-model="searchKeyword" type="text" placeholder="请输入关键词" />
           <button @click="handleSearch">搜索</button>
         </div>
-        
+
         <div class="user-actions">
           <button class="upload-btn" @click="openUploadDialog">上传资源</button>
           <button class="register-btn" @click="goToRegister">注册</button>
@@ -38,34 +34,59 @@
     <!-- 路由出口：所有页面内容在这里显示 -->
     <router-view class="page-container"></router-view>
     <upload-dialog ref="uploadDialog"></upload-dialog>
+    <search-results :visible="searchResultsVisible" :results="searchResults"
+      @close="closeSearchResults"></search-results>
   </div>
 </template>
 
 <script>
 import { RouterLink, RouterView } from 'vue-router'
 import UploadDialog from '@/components/UploadDialog.vue'
+import SearchResults from '@/components/SearchResults.vue'
 
 export default {
   name: 'App',
   components: {
     UploadDialog,
     RouterLink,
-    RouterView
+    RouterView,
+    SearchResults
   },
   data() {
     return {
-      searchKeyword: '' // 搜索关键词绑定
+      searchKeyword: '', // 搜索关键词绑定
+      searchResultsVisible: false,
+      searchResults: []
     }
   },
   methods: {
-    handleSearch() {
-      console.log('搜索关键词：', this.searchKeyword)
+    async handleSearch() {
+      if (!this.searchKeyword.trim()) {
+        return;
+      }
+      try {
+        const response = await fetch(`http://8.134.51.50:6060/api/v1/opera/list?skip=0&limit=100&search=${this.searchKeyword}`, {
+          method: "GET",
+          headers: {
+            'Authorization': localStorage.getItem("cookie") || ''
+          }
+        });
+        const data = await response.json();
+        this.searchResults = data.data.items;
+        console.log(this.searchResults)
+        this.searchResultsVisible = true;
+      } catch (error) {
+        console.error('Search failed:', error);
+      }
+    },
+    closeSearchResults() {
+      this.searchResultsVisible = false
     },
     goToRegister() {
       this.$router.push('/register')
     },
     openUploadDialog() {
-      console.log('上传按钮被点击') 
+      console.log('上传按钮被点击')
       this.$refs.uploadDialog.openDialog()
     }
   }
@@ -79,10 +100,12 @@ export default {
   padding: 0;
   box-sizing: border-box;
 }
+
 body {
   font-family: "Microsoft YaHei", sans-serif;
   background-color: #f4f4f4;
-  padding-top: 130px; /* 预留顶部固定区域高度 */
+  padding-top: 130px;
+  /* 预留顶部固定区域高度 */
 }
 
 /* 固定顶部区域 */
@@ -101,17 +124,20 @@ body {
   justify-content: space-between;
   background-color: #fff;
   padding: 10px 20px;
-  box-shadow: 0 0 5px rgba(0,0,0,0.1);
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
   height: 70px;
 }
+
 .logo img {
   height: 50px;
 }
+
 .search {
   display: flex;
   align-items: center;
   flex: 0 0 400px;
 }
+
 .search input {
   padding: 8px 12px;
   border: 1px solid #ccc;
@@ -119,26 +145,29 @@ body {
   outline: none;
   flex: 1;
   font-size: 16px;
-  height: 36px; 
-  line-height: 36px; 
+  height: 36px;
+  line-height: 36px;
 }
+
 .search button {
-  padding: 0 15px; 
+  padding: 0 15px;
   font-size: 16px;
   border: 1px solid #803c0f;
   background-color: #803c0f;
   color: #fff;
   cursor: pointer;
   transition: background-color 0.3s;
-  height: 36px; 
-  line-height: 36px; 
+  height: 36px;
+  line-height: 36px;
 }
+
 .search button:hover {
   background-color: #6e2c1b;
 }
+
 .user-actions .upload-btn {
   padding: 8px 18px;
-  font-size:16px !important;
+  font-size: 16px !important;
   background-color: #803c0f;
   color: #fff;
   border: none;
@@ -146,10 +175,11 @@ body {
   font-weight: bold;
   border-radius: 4px;
 }
+
 .user-actions .register-btn {
   margin-left: 10px;
   padding: 8px 18px;
-  font-size:16px !important;
+  font-size: 16px !important;
   background-color: #803c0f;
   color: #fff;
   border: none;
@@ -158,6 +188,7 @@ body {
   font-weight: bold;
   transition: background 0.2s;
 }
+
 .user-actions .register-btn:hover {
   background-color: #803c0f;
 }
@@ -166,16 +197,19 @@ body {
 .navbar {
   background-color: #6e2c1b;
 }
+
 .navbar ul {
   display: flex;
   list-style: none;
   justify-content: space-around;
   padding: 0 20px;
 }
+
 .navbar li {
   flex: 1;
   text-align: center;
 }
+
 .navbar a {
   display: block;
   padding: 15px 10px;
@@ -185,9 +219,11 @@ body {
   font-size: 20px;
   transition: all 0.3s;
 }
+
 .navbar a.router-link-active {
   color: #ffd700;
 }
+
 .navbar a.router-link-active::after {
   content: '';
   position: absolute;
@@ -197,6 +233,7 @@ body {
   height: 3px;
   background-color: #ffd700;
 }
+
 .navbar a:hover {
   color: #ffd700;
   background-color: rgba(255, 255, 255, 0.1);

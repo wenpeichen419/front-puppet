@@ -1,7 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Home from '../views/Home.vue'
 import Scripts from '../views/Scripts.vue'
-import Placeholder from '../views/Placeholder.vue'
 import CulturalResources from '../views/CulturalResources.vue'
 import CulturalChildIndex from '../views/CulturalChildPage/Index.vue'
 import CulturalChildPicture from '../views/CulturalChildPage/Picture.vue'
