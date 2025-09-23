@@ -210,13 +210,19 @@ export default {
     },
     
     async fetchResources() {
+      console.log('=== 搜索调试信息 ===');
+  console.log('搜索条件:', {
+    年代: this.era,
+    题材: this.theme, 
+    题目: this.title
+  });
       this.isLoading = true
       try {
         // 构建tags数组
         const tags = []
         if (this.era) tags.push(this.era)
         if (this.theme) tags.push(this.theme)
-        
+      
         // 先获取所有数据来计算总数
         const totalParams = new URLSearchParams()
         totalParams.append('limit', 1000)
@@ -228,7 +234,7 @@ export default {
         tags.forEach(tag => {
           totalParams.append('tags', tag)
         })
-
+        console.log('生成的tags数组:', tags);
         const totalResponse = await fetch(`http://8.134.51.50:6060/api/v1/file/list?${totalParams.toString()}`, {
           method: 'GET',
           headers: {
@@ -385,33 +391,14 @@ export default {
     },
 
     async downloadResource(item) {
-      try {
-        const response = await fetch(`http://8.134.51.50:6060/api/v1/file/download/${item.id}`, {
-          headers: {
-            'Authorization': this.getAuthToken()
-          }
-        })
-        
-        if (!response.ok) throw new Error('下载失败')
-        
-        const blob = await response.blob()
-        const url = window.URL.createObjectURL(blob)
-        const link = document.createElement('a')
-        link.href = url
-        link.download = item.title || 'download'
-        document.body.appendChild(link)
-        link.click()
-        document.body.removeChild(link)
-        
-        // 更新下载次数
-        if (this.selectedItem) {
-          this.selectedItem.views = (this.selectedItem.views || 0) + 1
-        }
-      } catch (error) {
-        console.error('下载失败:', error)
-        this.$message.error('下载失败，请稍后重试')
-      }
-    },
+  // 只需要提供图片URL，让用户自己右键下载
+  const imageUrl = this.getImageUrl(item.image);
+  
+  // 在新标签页打开图片，用户可右键保存
+  window.open(imageUrl, '_blank');
+  
+  this.$message.success('图片已在新窗口打开，请右键保存图片');
+},
 
     shareResource(item) {
       if (navigator.share) {

@@ -57,8 +57,8 @@
         </el-upload>
       </el-form-item>
 
-      <!-- 新增：上传资源封面图 -->
-      <el-form-item label="上传资源封面图（可选）" class="cover-upload">
+      <!-- 修改：上传资源封面图（必填） -->
+      <el-form-item label="上传资源封面图（tips：图片类型的资源不需要上传资源封面图）" prop="coverFile" class="cover-upload">
         <div class="cover-upload-tip" v-if="isImageFile">
           <el-alert
             title="图片类型资源将自动使用文件本身作为封面图"
@@ -138,6 +138,14 @@ export default {
         ],
         file: [
           { required: true, message: '请上传文件', trigger: 'change' }
+        ],
+        // 修改：封面图改为必填项
+        coverFile: [
+          { 
+            required: true, 
+            validator: this.validateCoverFile, 
+            trigger: 'change' 
+          }
         ]
       }
     }
@@ -157,6 +165,22 @@ export default {
     }
   },
   methods: {
+    // 新增：封面图验证器
+    validateCoverFile(rule, value, callback) {
+      // 如果是图片类型文件，自动有封面图，验证通过
+      if (this.isImageFile) {
+        callback();
+        return;
+      }
+      
+      // 非图片类型文件需要手动上传封面图
+      if (!this.form.coverFile) {
+        callback(new Error('请上传资源封面图'));
+      } else {
+        callback();
+      }
+    },
+    
     openDialog() {
       console.log('openDialog方法被调用')
       this.dialogVisible = true
@@ -191,11 +215,28 @@ export default {
             size: file.size,
             raw: coverFileCopy
           }];
+          
+          // 触发封面图验证（图片类型自动通过验证）
+          this.$nextTick(() => {
+            this.$refs.uploadForm.validateField('coverFile');
+          });
         } else {
           // 非图片类型文件，清除封面图
           this.coverFileList = []
           this.form.coverFile = null
+          
+          // 触发封面图验证（非图片类型需要手动上传）
+          this.$nextTick(() => {
+            this.$refs.uploadForm.validateField('coverFile');
+          });
         }
+      } else {
+        // 清空文件时也清空封面图
+        this.coverFileList = []
+        this.form.coverFile = null
+        this.$nextTick(() => {
+          this.$refs.uploadForm.validateField('coverFile');
+        });
       }
     },
     // 新增：处理封面图上传（仅对非图片类型文件有效）
@@ -203,6 +244,11 @@ export default {
       if (fileList.length > 0 && !this.isImageFile) {
         this.coverFileList = [fileList[fileList.length - 1]] // 只保留最新上传的文件
         this.form.coverFile = file.raw
+        
+        // 触发验证
+        this.$nextTick(() => {
+          this.$refs.uploadForm.validateField('coverFile');
+        });
       }
     },
     // 新增：处理封面图删除
@@ -210,6 +256,11 @@ export default {
       if (!this.isImageFile) {
         this.coverFileList = fileList
         this.form.coverFile = fileList.length > 0 ? fileList[0].raw : null
+        
+        // 触发验证
+        this.$nextTick(() => {
+          this.$refs.uploadForm.validateField('coverFile');
+        });
       }
     },
     submitForm() {
@@ -255,6 +306,8 @@ export default {
           this.dialogVisible = false;
           this.resetForm();
           this.$emit('upload-success');
+        } else {
+          this.$message.error(`上传失败: ${result.message || '未知错误'}`);
         }
       } catch (error) {
         console.error('上传失败:', error);
@@ -299,5 +352,12 @@ export default {
 .cover-upload-demo .el-upload-dragger.is-disabled {
   background-color: #f5f5f5;
   cursor: not-allowed;
+}
+
+/* 为必填项添加星号标识 */
+.el-form-item.is-required .el-form-item__label::before {
+  content: '*';
+  color: #f56c6c;
+  margin-right: 4px;
 }
 </style>
