@@ -285,12 +285,19 @@ export default {
 </script>
 
 <style scoped>
-/* 原有样式保持不变，添加以下加载动画样式 */
+/* 基础重置和基准设置 */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* 加载动画 */
 .loading-spinner {
   display: inline-block;
-  width: 24px;
-  height: 24px;
-  border: 3px solid rgba(128, 60, 15, 0.3);
+  width: 1.5rem; /* 24px -> 1.5rem */
+  height: 1.5rem;
+  border: 0.1875rem solid rgba(128, 60, 15, 0.3); /* 3px -> 0.1875rem */
   border-radius: 50%;
   border-top-color: #803c0f;
   animation: spin 1s ease-in-out infinite;
@@ -304,101 +311,96 @@ export default {
   display: flex;
   align-items: center;
   position: absolute;
-  top: 40%;  /* 更靠下 */
-  left: -2%; /* 更靠左 */
+  top: 40%;
+  left: -2%;
   transform: translate(-50%, -50%);
 }
 
 .gaozhou-icon {
-  width: 80px;
-  height: 80px;
-  margin-right: 48px; /* 约3个字体距离(16px*3) */
+  width: 5rem; /* 80px -> 5rem */
+  height: 5rem;
+  margin-right: 3rem; /* 48px -> 3rem */
 }
 
 /* 调整欢迎消息位置 */
 .welcome-message {
   position: absolute;
-  top: 40%;  /* 更靠下 */
-  left: 50%; /* 更靠左 */
+  top: 40%;
+  left: 50%;
   transform: translate(-50%, -50%);
   width: 80%;
-  max-width: 600px;
-  text-align: left; /* 左对齐 */
+  max-width: 37.5rem; /* 600px -> 37.5rem */
+  text-align: left;
 }
 
-
 .title-text h3 {
-  font-size: 38px !important; /* 更大字号 */
+  font-size: 2.375rem !important; /* 38px -> 2.375rem */
   font-weight: bold;
   color: #803c0f;
-  margin-bottom: 12px;
+  margin-bottom: 0.75rem; /* 12px -> 0.75rem */
   white-space: nowrap;
 }
 
 .title-text p {
-  font-size: 22px !important; /* 更大字号 */
+  font-size: 1.375rem !important; /* 22px -> 1.375rem */
   color: #6e2c1b;
   line-height: 1.6;
-  padding-left: 52px;
+  padding-left: 3.25rem; /* 52px -> 3.25rem */
   white-space: nowrap;
 }
-
 
 /* 调整聊天历史区域 */
 .chat-history-wrapper {
   flex: 1;
   overflow-y: auto;
-  padding-bottom: 180px;
+  padding-bottom: 11.25rem; /* 180px -> 11.25rem */
   scroll-behavior: smooth;
 }
 
 .chat-history {
   width: 90%;
-  max-width: 1200px;
+  max-width: 75rem; /* 1200px -> 75rem */
   margin: 0 auto;
-  padding: 20px 0;
-  min-height: calc(100% - 40px);
-  padding-bottom: 40px;
+  padding: 1.25rem 0; /* 20px -> 1.25rem */
+  min-height: calc(100% - 2.5rem); /* 40px -> 2.5rem */
+  padding-bottom: 2.5rem; /* 40px -> 2.5rem */
 }
 
 .ai-page {
   display: flex;
-  height: calc(100vh - 130px); /* 减去导航栏高度 */
+  height: calc(100vh - 8.125rem); /* 130px -> 8.125rem */
   background-color: #fff;
-  margin-top: 130px; /* 导航栏高度 */
+  margin-top: 8.125rem; /* 130px -> 8.125rem */
+  font-size: 1rem; /* 设置基准字体大小 */
 }
 
 /* 左侧边栏样式 */
 .sidebar {
-  width: 88px; /* 更窄的宽度 */
+  width: 5.5rem; /* 88px -> 5.5rem */
   background-color: #fcf8f5;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 16px 0;
-  /* 移除所有边框 */
+  padding: 1rem 0; /* 16px -> 1rem */
   border: none !important;
-  /* 添加细微阴影创造层次感 */
-  box-shadow: 1px 0 2px rgba(0, 0, 0, 0.05);
+  box-shadow: 0.0625rem 0 0.125rem rgba(0, 0, 0, 0.05); /* 1px 2px -> 0.0625rem 0.125rem */
 }
 
 /* AI头像样式 */
 .ai-avatar {
-  width: 64px;
-  height: 64px;
+  width: 4rem; /* 64px -> 4rem */
+  height: 4rem;
   border-radius: 50%;
   background-color: white;
-  /* 保留头像边框作为视觉焦点 */
-  border: 2px solid #803c0f;
+  border: 0.125rem solid #803c0f; /* 2px -> 0.125rem */
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-bottom: 24px;
+  margin-bottom: 1.5rem; /* 24px -> 1.5rem */
   overflow: hidden;
   cursor: pointer;
   transition: all 0.2s;
 }
-
 
 .ai-avatar img {
   width: 90%;
@@ -407,8 +409,8 @@ export default {
 }
 
 .new-chat {
-  width: 56px;
-  height: 56px;
+  width: 3.5rem; /* 56px -> 3.5rem */
+  height: 3.5rem;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -417,14 +419,10 @@ export default {
   cursor: pointer;
   margin-bottom: auto;
   transition: all 0.2s;
-  transform: translateY(15px);
-  /* 稀疏虚线边框 - 方法1 */
-  border: 5px dashed #6e2c1b;
-  /* 控制虚线间距（Chrome/Firefox） */
-  border-spacing: 5px;
-  /* Safari兼容 */
-  -webkit-border-spacing: 5px;
-  
+  transform: translateY(0.9375rem); /* 15px -> 0.9375rem */
+  border: 0.3125rem dashed #6e2c1b; /* 5px -> 0.3125rem */
+  border-spacing: 0.3125rem; /* 5px -> 0.3125rem */
+  -webkit-border-spacing: 0.3125rem;
   position: relative;
 }
 
@@ -434,44 +432,44 @@ export default {
   content: "";
   position: absolute;
   background-color: #6e2c1b;
-  border-radius: 2px; /* 圆角减小 */
+  border-radius: 0.125rem; /* 2px -> 0.125rem */
 }
 
 .new-chat::before {
-  width: 32px; /* 保持长度 */
-  height: 4px; /* 减细加号（原6px） */
+  width: 2rem; /* 32px -> 2rem */
+  height: 0.25rem; /* 4px -> 0.25rem */
 }
 
 .new-chat::after {
-  width: 5px;  /* 减细加号（原6px） */
-  height: 32px; /* 保持长度 */
+  width: 0.3125rem; /* 5px -> 0.3125rem */
+  height: 2rem; /* 32px -> 2rem */
 }
 
 .new-chat:hover {
   background-color: #f9f2e7;
-  transform: translateY(15px) scale(1.05);
+  transform: translateY(0.9375rem) scale(1.05); /* 15px -> 0.9375rem */
 }
 
 .plus-icon {
-  font-size: 24px;
+  font-size: 1.5rem; /* 24px -> 1.5rem */
   color: #774230;
 }
 
 .new-chat span {
-  display: none; /* 在小宽度下隐藏文字 */
+  display: none;
 }
 
 .user-avatar {
-  width: 70px;
-  height: 70px;
+  width: 4.375rem; /* 70px -> 4.375rem */
+  height: 4.375rem;
   border-radius: 50%;
   overflow: hidden;
   cursor: pointer;
   margin-top: auto;
   transition: all 0.2s;
-  /* 移除阴影（根据你之前的需求） */
   box-shadow: none;
 }
+
 .user-avatar img {
   width: 100%;
   height: 100%;
@@ -491,24 +489,22 @@ export default {
 
 .welcome-message {
   text-align: center;
-  padding: 40px 20px;
+  padding: 2.5rem 1.25rem; /* 40px 20px -> 2.5rem 1.25rem */
   color: #333;
 }
 
 .welcome-message h3 {
-  font-size: 24px;
-  margin-bottom: 10px;
+  font-size: 1.5rem; /* 24px -> 1.5rem */
+  margin-bottom: 0.625rem; /* 10px -> 0.625rem */
   color: #803c0f;
 }
 
 .welcome-message p {
-  font-size: 16px;
+  font-size: 1rem; /* 16px -> 1rem */
   color: #666;
 }
 
-
 /* 新的输入区域样式 */
-/* 统一输入框样式 */
 .chat-input-area {
   padding: 0;
   background-color: transparent;
@@ -517,32 +513,29 @@ export default {
   left: 53%;
   transform: translateX(-50%);
   width: 98%;
-  max-width: 1200px;
+  max-width: 75rem; /* 1200px -> 75rem */
   transition: all 0.3s ease;
   margin: 0 auto;
-  bottom: 30%; /* 无消息时的位置 */
+  bottom: 30%;
 }
 
 .chat-input-area.active {
-  bottom: 4%; /* 有消息时的位置 */
-  /* 保持相同的宽度控制 */
+  bottom: 4%;
   border-top: none;
   width: 98%;
-  max-width: 1200px;
+  max-width: 75rem; /* 1200px -> 75rem */
 }
-
 
 /* 输入容器样式 */
 .input-container {
   display: flex;
   align-items: flex-end;
-  background-color: #fff; /* 输入框背景色 */
-  border-radius: 12px; /* 更大的圆角 */
-  padding: 12px 16px; /* 更大的内边距 */
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* 更柔和的阴影 */
-  width: 100%; /* 占据全部宽度 */
-  min-height: 100px; /* 最小高度 */
-
+  background-color: #fff;
+  border-radius: 0.75rem; /* 12px -> 0.75rem */
+  padding: 0.75rem 1rem; /* 12px 16px -> 0.75rem 1rem */
+  box-shadow: 0 0.125rem 0.5rem rgba(0, 0, 0, 0.1); /* 2px 8px -> 0.125rem 0.5rem */
+  width: 100%;
+  min-height: 6.25rem; /* 100px -> 6.25rem */
 }
 
 /* 文本输入框样式 */
@@ -551,25 +544,24 @@ textarea {
   border: none;
   outline: none;
   resize: none;
-  font-size: 24px;
+  font-size: 1.5rem; /* 24px -> 1.5rem */
   line-height: 1.5;
-  min-height: 120px; /* 最小高度 */
-  max-height: 200px; /* 更大的最大高度 */
+  min-height: 7.5rem; /* 120px -> 7.5rem */
+  max-height: 12.5rem; /* 200px -> 12.5rem */
   overflow-y: auto;
-  padding: 8px 12px; /* 更大的内边距 */
+  padding: 0.5rem 0.75rem; /* 8px 12px -> 0.5rem 0.75rem */
   font-family: inherit;
-  background: transparent; /* 透明背景 */
-  
+  background: transparent;
 }
 
 /* 发送按钮样式 */
 .send-button {
-  width: 54px; /* 更大的宽度 */
-  height: 54px; /* 更大的高度 */
+  width: 3.375rem; /* 54px -> 3.375rem */
+  height: 3.375rem;
   border-radius: 50%;
   background-color: #d8dee8;
   border: none;
-  margin-left: 12px; /* 更大的左边距 */
+  margin-left: 0.75rem; /* 12px -> 0.75rem */
   cursor: pointer;
   display: flex;
   justify-content: center;
@@ -582,8 +574,8 @@ textarea {
 }
 
 .send-button svg {
-  width: 24px; /* 更大的图标 */
-  height: 24px;
+  width: 1.5rem; /* 24px -> 1.5rem */
+  height: 1.5rem;
 }
 
 /* 弹窗样式 */
@@ -602,14 +594,14 @@ textarea {
 
 .user-menu-content, .language-menu-content {
   background-color: white;
-  border-radius: 8px;
+  border-radius: 0.5rem; /* 8px -> 0.5rem */
   overflow: hidden;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  min-width: 200px;
+  box-shadow: 0 0.125rem 0.625rem rgba(0, 0, 0, 0.1); /* 2px 10px -> 0.125rem 0.625rem */
+  min-width: 12.5rem; /* 200px -> 12.5rem */
 }
 
 .menu-item, .language-option {
-  padding: 12px 20px;
+  padding: 0.75rem 1.25rem; /* 12px 20px -> 0.75rem 1.25rem */
   cursor: pointer;
   transition: background-color 0.3s;
 }
@@ -624,17 +616,17 @@ textarea {
 }
 
 .language-menu-content {
-  min-width: 150px;
+  min-width: 9.375rem; /* 150px -> 9.375rem */
 }
 
 /* 消息气泡基础样式 */
 .message-container {
   display: flex;
   align-items: flex-start;
-  margin-bottom: 50px;
-  margin-top: 30px;
+  margin-bottom: 3.125rem; /* 50px -> 3.125rem */
+  margin-top: 1.875rem; /* 30px -> 1.875rem */
   width: 100%;
-  max-width: 1200px;
+  max-width: 75rem; /* 1200px -> 75rem */
 }
 
 /* AI消息容器 - 左对齐 */
@@ -649,22 +641,22 @@ textarea {
 
 /* 消息头像 */
 .message-avatar {
-  width: 50px;
-  height: 50px;
+  width: 3.125rem; /* 50px -> 3.125rem */
+  height: 3.125rem;
   border-radius: 50%;
-  margin-top: 8px;
-  margin-right: 12px; /* 头像和气泡之间的距离 */
+  margin-top: 0.5rem; /* 8px -> 0.5rem */
+  margin-right: 0.75rem; /* 12px -> 0.75rem */
   flex-shrink: 0;
-  border: 2px solid #803c0f;
+  border: 0.125rem solid #803c0f; /* 2px -> 0.125rem */
   object-fit: contain;
 }
 
 /* 消息气泡 */
 .message-bubble {
-  max-width: calc(100% - 60px); /* 减去头像和间距的宽度 */
-  padding: 16px 20px;
-  border-radius: 16px;
-  font-size: 22px;
+  max-width: calc(100% - 3.75rem); /* 60px -> 3.75rem */
+  padding: 1rem 1.25rem; /* 16px 20px -> 1rem 1.25rem */
+  border-radius: 1rem; /* 16px -> 1rem */
+  font-size: 1.375rem; /* 22px -> 1.375rem */
   line-height: 1.5;
   position: relative;
 }
@@ -696,17 +688,115 @@ textarea {
 .message-bubble ::v-deep ol {
   padding-left: 1.2em;
   margin-bottom: 1em;
-  list-style-position: inside; /* 确保编号在气泡内部 */
+  list-style-position: inside;
 }
 
 .message-bubble ::v-deep li {
   margin-bottom: 0.5em;
-  padding-left: 0.5em; /* 为编号留出适当空间 */
-  text-indent: -0.8em; /* 调整编号位置 */
+  padding-left: 0.5em;
+  text-indent: -0.8em;
 }
 
 .message-bubble ::v-deep strong {
   font-weight: bold;
   color: #6e2c1b;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  .ai-page {
+    font-size: 0.875rem; /* 在小屏幕上减小基准字体 */
+  }
+  
+  .sidebar {
+    width: 4rem; /* 侧边栏变窄 */
+  }
+  
+  .title-text h3 {
+    font-size: 1.5rem !important;
+    white-space: normal;
+  }
+  
+  .title-text p {
+    font-size: 1rem !important;
+    white-space: normal;
+    padding-left: 0;
+  }
+  
+  .chat-history {
+    width: 95%;
+    padding: 1rem 0;
+  }
+  
+  .message-bubble {
+    font-size: 1rem;
+    padding: 0.75rem 1rem;
+  }
+  
+  .chat-input-area {
+    width: 95%;
+  }
+  
+  textarea {
+    font-size: 1.25rem;
+    min-height: 6rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .ai-page {
+    font-size: 0.75rem;
+    margin-top: 6rem;
+    height: calc(100vh - 6rem);
+  }
+  
+  .sidebar {
+    width: 3rem;
+    padding: 0.5rem 0;
+  }
+  
+  .ai-avatar {
+    width: 2.5rem;
+    height: 2.5rem;
+    margin-bottom: 1rem;
+  }
+  
+  .new-chat {
+    width: 2.5rem;
+    height: 2.5rem;
+    transform: translateY(0.5rem);
+  }
+  
+  .user-avatar {
+    width: 3rem;
+    height: 3rem;
+  }
+  
+  .welcome-message {
+    padding: 1.5rem 1rem;
+  }
+  
+  .title-text h3 {
+    font-size: 1.25rem !important;
+  }
+  
+  .title-text p {
+    font-size: 0.875rem !important;
+  }
+  
+  .gaozhou-icon {
+    width: 3rem;
+    height: 3rem;
+    margin-right: 1.5rem;
+  }
+  
+  .chat-input-area {
+    width: 95%;
+    bottom: 25%;
+  }
+  
+  .chat-input-area.active {
+    bottom: 2%;
+  }
 }
 </style>
