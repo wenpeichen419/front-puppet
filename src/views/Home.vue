@@ -140,8 +140,7 @@ export default {
             ...this.newsItems
           ];
         } else {
-          ElMessage.error('请先登录');
-          this.$router.push("/login")
+          ElMessage.error('Empty');
         }
       } catch (error) {
         ElMessage.error('Error fetching news: ' + (error.message || 'Unknown error'));
