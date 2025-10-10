@@ -111,10 +111,9 @@ export default {
             ...result.data.items
           ];
         } else {
-          ElMessage.error('Failed to fetch inheritors data: ' + (result.message || 'Unknown error'));
+          
         }
       } catch (error) {
-        ElMessage.error('Error fetching inheritors: ' + (error.message || 'Unknown error'));
       }
     },
     async fetchNewsItems(skip, limit) {
@@ -149,29 +148,26 @@ export default {
       }
     },
     async judgeIfLogin(){
-      const response = await fetch('http://8.134.51.50:6060/api/v1/article', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': localStorage.getItem("cookie"),
-        },
-        body: JSON.stringify({
-          title: '',
-          content: '',
-          author: '',
-          description: ''
-        })
+      let token = localStorage.getItem("cookie");
+      if (token) {
+        token = token.slice(7);
+      }
+
+      const response = await fetch('http://8.134.51.50:6060/api/v1/check?token='+token, {
+        method: 'GET',
       });
       const result = await response.json();
-      if (result.code === 401) {
+      if (result.code !== 200) {
         ElMessage.info("请先登录");
         console.log("未登录");
         this.$router.push("/login");
+      }else{
+        console.log("已登录");
       }
     },
   },
   mounted() {
-    // this.judgeIfLogin();
+    this.judgeIfLogin();
     this.fetchInheritors(0, 500);
     this.fetchNewsItems(this.curNewsIndex, 5);
     this.curNewsIndex += 5;
