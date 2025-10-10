@@ -147,10 +147,32 @@ export default {
       } finally {
         this.isLoading = false;
       }
-    }
+    },
+    async judgeIfLogin(){
+      const response = await fetch('http://8.134.51.50:6060/api/v1/article', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': localStorage.getItem("cookie"),
+        },
+        body: JSON.stringify({
+          title: '',
+          content: '',
+          author: '',
+          description: ''
+        })
+      });
+      const result = await response.json();
+      if (result.code === 401) {
+        ElMessage.info("请先登录");
+        console.log("未登录");
+        this.$router.push("/login");
+      }
+    },
   },
   mounted() {
-    this.fetchInheritors(0, 50);
+    // this.judgeIfLogin();
+    this.fetchInheritors(0, 500);
     this.fetchNewsItems(this.curNewsIndex, 5);
     this.curNewsIndex += 5;
     this.$el.addEventListener('scroll', this.handleScroll);
