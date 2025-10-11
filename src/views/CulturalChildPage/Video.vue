@@ -91,10 +91,17 @@
           <div class="card-body">
             <h3>{{ item.title }}</h3>
             <div class="card-footer">
-              <div class="stats">
-                <span class="stat-view">👁️ {{ item.views }}</span>
-                <span class="stat-like">❤️ {{ item.likes }}</span>
-              </div>
+          <div class="tags-container">
+           <span class="tag-emoji">🏷️</span>
+            <span 
+             v-for="tag in item.tags" 
+             :key="tag" 
+             class="tag"
+            >
+            {{ tag }}
+            </span>
+
+          </div>
               <!-- 删除按钮 -->
               <button 
                 class="delete-button"
@@ -184,15 +191,7 @@
           </div>
         </div>
         
-        <div class="modal-footer">
-          <button 
-            class="modal-btn like-btn"
-            @click="likeResource(selectedItem)"
-          >
-            ❤️ 点赞 ({{ selectedItem.likes }})
-          </button>
-       
-        </div>
+     
       </div>
     </div>
 
@@ -289,10 +288,10 @@ export default {
             thumbnail: item.cover_url,
             duration: item.duration || 0,
             views: item.play_count || 0,
-            likes: 0,
             description: item.description || '暂无视频描述',
             uploadDate: this.formatDate(item.created_at),
             category: item.tags?.join(', ') || '未分类',
+            tags: item.tags || [], // 添加这一行
             file_size: item.file_size || 0,
             mime_type: item.mime_type || 'video/mp4'
           }))
@@ -1063,15 +1062,6 @@ export default {
   transition: background-color 0.2s;
 }
 
-.like-btn {
-  background-color: #f8e1e1;
-  color: #d9534f;
-}
-
-.like-btn:hover {
-  background-color: #f1c0c0;
-}
-
 .share-btn {
   background-color: #e1f0f8;
   color: #337ab7;
@@ -1171,10 +1161,6 @@ export default {
     max-height: 300px;
   }
   
-  .modal-footer {
-    flex-wrap: wrap;
-    justify-content: center;
-  }
   
   .modal-btn {
     flex: 1;
@@ -1228,4 +1214,28 @@ export default {
     font-size: 14px;
   }
 }
+
+/* Tags 样式 */
+.tags-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tag {
+  background-color: #f8f2e7;
+  color: #645151ff;
+  padding: 4px 20px;
+  border-radius: 20px;
+  font-size: 18px;
+  font-weight:bold;
+  border: 1px solid #f8f2e7;
+  white-space: nowrap;
+}
+
+.tag-emoji {
+  font-size: 25px;
+  margin-right: 2px;
+}
+
 </style>
