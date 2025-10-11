@@ -47,11 +47,6 @@
       </div>
     </div>
 
-    <!-- 新闻上传按钮 -->
-    <!-- <div class="upload-news-button" @click="isNewsUploadDialogVisible = true">
-      <el-button type="primary" icon="el-icon-upload">上传新闻</el-button>
-    </div> -->
-
     <!-- 新闻上传弹窗 -->
     <news-upload-dialog v-model:visible="isNewsUploadDialogVisible" @upload-success="handleUploadSuccess"></news-upload-dialog>
 
@@ -80,9 +75,18 @@ export default {
         images['/src/assets/play1.png'],
         images['/src/assets/play2.png'],
       ],
+      curNewsIndex: 0,
+      isLoading: false,
     }
   },
   methods: {
+    handleScroll(event) {
+      const { scrollTop, clientHeight, scrollHeight } = event.target;
+      if (scrollTop + clientHeight >= scrollHeight - 5 && !this.isLoading) {
+        this.fetchNewsItems(this.curNewsIndex, 5);
+        this.curNewsIndex += 5;
+      }
+    },
     goToNewsDetail(newsId) {
       this.$router.push(`/news/${newsId}`)
     },
@@ -107,13 +111,14 @@ export default {
             ...result.data.items
           ];
         } else {
-          ElMessage.error('Failed to fetch inheritors data: ' + (result.message || 'Unknown error'));
+          
         }
       } catch (error) {
-        ElMessage.error('Error fetching inheritors: ' + (error.message || 'Unknown error'));
       }
     },
     async fetchNewsItems(skip, limit) {
+      if (this.isLoading) return;
+      this.isLoading = true;
       try {
         const response = await fetch('http://8.134.51.50:6060/api/v1/article/list?skip=' + skip + '&limit=' + limit, {
           method: 'GET',
@@ -134,16 +139,42 @@ export default {
             ...this.newsItems
           ];
         } else {
-          ElMessage.error('Failed to fetch news: ' + (result.message || 'Unknown error'));
+          ElMessage.error('Empty');
         }
       } catch (error) {
         ElMessage.error('Error fetching news: ' + (error.message || 'Unknown error'));
+      } finally {
+        this.isLoading = false;
       }
-    }
+    },
+    async judgeIfLogin(){
+      let token = localStorage.getItem("cookie");
+      if (token) {
+        token = token.slice(7);
+      }
+
+      const response = await fetch('http://8.134.51.50:6060/api/v1/check?token='+token, {
+        method: 'GET',
+      });
+      const result = await response.json();
+      if (result.code !== 200) {
+        ElMessage.info("请先登录");
+        console.log("未登录");
+        this.$router.push("/login");
+      }else{
+        console.log("已登录");
+      }
+    },
   },
   mounted() {
-    this.fetchInheritors(0, 50);
-    this.fetchNewsItems(0, 50);
+    this.judgeIfLogin();
+    this.fetchInheritors(0, 500);
+    this.fetchNewsItems(this.curNewsIndex, 5);
+    this.curNewsIndex += 5;
+    this.$el.addEventListener('scroll', this.handleScroll);
+  },
+  beforeUnmount() {
+    this.$el.removeEventListener('scroll', this.handleScroll);
   }
 };
 </script>

@@ -13,7 +13,7 @@
         </div>
 
         <!-- 剧本列表展示 -->
-        <div v-if="!showDetail" class="script-cards" v-loading="isLoading">
+        <div v-if="!showDetail" class="script-cards" v-loading="isLoading" id="script-list">
             <div v-for="script in scripts" :key="script.id" class="script-card" @click="showScriptDetail(script)">
                 <div class="script-card-content">
                     <h3>{{ script.title }}</h3>
@@ -81,6 +81,8 @@ interface ApiResponse {
     timestamp: string;
 }
 
+var curIndex = 0;
+
 // 剧本数据
 const scripts = ref<any[]>([]);
 
@@ -104,7 +106,7 @@ async function fetchScripts(skip = 0, limit = 50) {
         
         if (data.code === 200) {
             // 将返回的剧本数据添加到 scripts 数组中
-            scripts.value = data.data.scripts.map((script: Script) => ({
+            const newScripts = data.data.scripts.map((script: Script) => ({
                 id: script.id,
                 title: script.title,
                 content: script.description,
@@ -114,7 +116,8 @@ async function fetchScripts(skip = 0, limit = 50) {
                 created_at: script.created_at,
                 updated_at: script.updated_at
             }));
-            ElMessage.success(data.message);
+            scripts.value = scripts.value.concat(newScripts);
+            // ElMessage.success(data.message);
         } else {
             ElMessage.error(data.message || '获取剧本列表失败');
         }
@@ -152,12 +155,24 @@ const openUploadDialog = () => {
 // 处理上传成功
 const handleUploadSuccess = () => {
     // 重新获取剧本列表
-    fetchScripts(0, 50);
+    // fetchScripts(0, 50);
 };
 
 // 页面加载时获取剧本
 onMounted(() => {
-    fetchScripts(0, 50);
+    fetchScripts(curIndex, 12);
+    curIndex += 12;
+
+    const scriptList = document.getElementById('script-list');
+    if (scriptList) {
+        scriptList.addEventListener('scroll', () => {
+            if (isLoading.value) return;
+            if (scriptList.scrollTop + scriptList.clientHeight >= scriptList.scrollHeight - 10) {
+                fetchScripts(curIndex, 12);
+                curIndex += 12;
+            }
+        });
+    }
 });
 </script>
 
@@ -215,6 +230,8 @@ onMounted(() => {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 24px;
+    overflow-y: scroll;
+    max-height: 60vh;
 }
 
 .script-card {

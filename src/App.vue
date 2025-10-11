@@ -1,7 +1,7 @@
 <template>
   <div id="app">
     <!-- 固定顶部公共区域（导航+搜索） -->
-    <div class="fixed-header">
+    <div class="fixed-header" v-if="shouldShowHeader">
       <!-- 顶部导航 -->
       <header class="header">
         <div class="logo">
@@ -43,6 +43,7 @@
 import { RouterLink, RouterView } from 'vue-router'
 import UploadDialog from '@/components/UploadDialog.vue'
 import SearchResults from '@/components/SearchResults.vue'
+import { ref } from 'vue';
 
 export default {
   name: 'App',
@@ -56,7 +57,17 @@ export default {
     return {
       searchKeyword: '', // 搜索关键词绑定
       searchResultsVisible: false,
-      searchResults: []
+      searchResults: [],
+      shouldShowHeader: true,
+    }
+  },
+  watch: {
+    '$route'(to, from) {
+      if (to.path === '/login') {
+        this.shouldShowHeader = false;
+      } else {
+        this.shouldShowHeader = true;
+      }
     }
   },
   methods: {

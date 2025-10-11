@@ -9,14 +9,6 @@
     <div class="video-info">
       <p>视频简介：</p>
       <p>{{ video.description }}</p>
-      <div class="video-stats">
-        <!-- <div style="display: flex; align-items: center; gap: 5px; font-size: 18px;">
-          <img src="@/assets/view.png" alt="播放数" style="width: 18px; height: 18px;"/>
-          <span style="margin-right: 10px;">{{ video.views }}</span>
-          <img src="@/assets/thumbs-up.png" alt="点赞数" style="width: 18px; height: 18px;"/>
-          <span style="margin-right: 10px;">{{ video.likes }}</span>
-        </div> -->
-      </div>
     </div>
     <button @click="goBack" class="back-button">返回列表</button>
   </div>
@@ -112,13 +104,6 @@ export default {
   font-size: 1.1em;
   color: #333;
   margin-bottom: 15px;
-}
-.video-stats {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  font-size: 1em;
-  color: #555;
 }
 .back-button {
   margin-top: 10px;

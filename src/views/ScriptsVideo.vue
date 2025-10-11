@@ -10,7 +10,7 @@
         上传视频
       </el-button>
     </div>
-    <div class="scripts-page" v-loading="isLoading">
+    <div class="scripts-page" v-loading="isLoading" id="scripts-page">
       <div class="script-item" v-for="script in scripts" :key="script.id" @click="goToVideo(script.id)">
         <div class="script-cover">
           <img :src="script.coverUrl" :alt="script.title" @error="handleImgError">
@@ -19,10 +19,6 @@
           <h3>{{ script.title }}</h3>
           <p>{{ script.description }}</p>
           <div style="display: flex; align-items: center; gap: 5px; font-size: 20px;">
-            <!-- <img src="@/assets/view.png" alt="播放数" style="width: 20px; height: 20px;" />
-            <span style="margin-right: 10px;">{{ script.views }}</span>
-            <img src="@/assets/thumbs-up.png" alt="播放数" style="width: 20px; height: 20px;" />
-            <span style="margin-right: 10px;">{{ script.likes }}</span> -->
           </div>
         </div>
       </div>
@@ -42,6 +38,8 @@ import { useRouter } from 'vue-router';
 import VideoUploadDialog from '@/components/VideoUploadDialog.vue';
 
 const router = useRouter();
+
+var curIndex = 0;
 
 // VideoUploadDialog 的引用
 const videoUploadDialog = ref();
@@ -84,7 +82,19 @@ async function fetchScriptsFromBackend(skip = 0, limit = 50) {
 }
 
 onMounted(() => {
-  fetchScriptsFromBackend();
+  fetchScriptsFromBackend(curIndex, 5);
+  curIndex += 5;
+
+  const scriptsPage = document.getElementById('scripts-page');
+  if (scriptsPage) {
+    scriptsPage.addEventListener('scroll', () => {
+      if (isLoading.value) return;
+      if (scriptsPage.scrollTop + scriptsPage.clientHeight >= scriptsPage.scrollHeight - 10) {
+        fetchScriptsFromBackend(curIndex, 5);
+        curIndex += 5;
+      }
+    });
+  }
 });
 
 function goToVideo(id: number | string) {
