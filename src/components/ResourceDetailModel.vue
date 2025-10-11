@@ -48,9 +48,7 @@
               <button class="btn-download" @click="$emit('download', item)">
                 <span>⬇️ 下载资源</span>
               </button>
-              <button class="btn-share" @click="$emit('share', item)">
-                <span>↗️ 分享资源</span>
-              </button>
+            
             </div>
           </div>
         </div>
