@@ -87,9 +87,16 @@
       <div class="card-body">
         <h3>{{ item.title }}</h3>
         <div class="card-footer">
-          <div class="stats">
-            <span class="stat-view">👁️ {{ item.views }}</span>
-            <span class="stat-like">❤️ {{ item.likes }}</span>
+          <div class="tags-container">
+           <span class="tag-emoji">🏷️</span>
+            <span 
+             v-for="tag in item.tags" 
+             :key="tag" 
+             class="tag"
+            >
+            {{ tag }}
+            </span>
+
           </div>
           <!-- 删除按钮 -->
           <button 
@@ -1016,4 +1023,29 @@ async confirmDelete() {
     font-size: 14px;
   }
 }
+
+/* Tags 样式 */
+.tags-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tag {
+  background-color: #f8f2e7;
+  color: #645151ff;
+  padding: 4px 20px;
+  border-radius: 20px;
+  font-size: 18px;
+  font-weight:bold;
+  border: 1px solid #f8f2e7;
+  white-space: nowrap;
+}
+
+.tag-emoji {
+  font-size: 25px;
+  margin-right: 2px;
+}
+
+
 </style>

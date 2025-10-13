@@ -31,26 +31,13 @@
               </div>
             </div>
 
-            <div class="modal-stats">
-              <div class="stat-item" @click="$emit('like', item)">
-                <span class="stat-icon">❤️</span>
-                <span class="stat-count">{{ item.likes }}</span>
-                <span>点赞</span>
-              </div>
-              <div class="stat-item">
-                <span class="stat-icon">👁️</span>
-                <span class="stat-count">{{ item.views }}</span>
-                <span>浏览</span>
-              </div>
-            </div>
+       
 
             <div class="modal-actions">
               <button class="btn-download" @click="$emit('download', item)">
                 <span>⬇️ 下载资源</span>
               </button>
-              <button class="btn-share" @click="$emit('share', item)">
-                <span>↗️ 分享资源</span>
-              </button>
+            
             </div>
           </div>
         </div>
