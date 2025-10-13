@@ -2,103 +2,47 @@
   <div class="page-wrapper">
     <!-- 内容容器 -->
     <div class="content-container">
-      <!-- 页面标题 -->
       <h1 class="page-title">经典曲目点播</h1>
 
-      <!-- 轮播图区域 -->
+      <!-- 轮播图 -->
       <section class="carousel-container">
         <div class="carousel-wrapper">
-          <!-- 轮播图片 -->
-          <img
-            :src="currentImage"
-            :alt="`轮播图 ${currentIndex + 1}`"
-            class="carousel-image"
-          />
-
-          <!-- 轮播控制按钮 -->
-          <button 
-            @click="prevSlide"
-            class="carousel-btn prev-btn"
-            aria-label="上一张"
-          >
-            ←
-          </button>
-          <button 
-            @click="nextSlide"
-            class="carousel-btn next-btn"
-            aria-label="下一张"
-          >
-            →
-          </button>
-
-          <!-- 轮播指示器 -->
+          <img :src="currentImage" :alt="`轮播图 ${currentIndex + 1}`" class="carousel-image" />
+          <button @click="prevSlide" class="carousel-btn prev-btn" aria-label="上一张">←</button>
+          <button @click="nextSlide" class="carousel-btn next-btn" aria-label="下一张">→</button>
           <div class="carousel-indicators">
-            <button
-              v-for="(slide, index) in images"
-              :key="index"
-              @click="currentIndex = index"
-              class="indicator-btn"
-              :class="index === currentIndex ? 'active' : ''"
-              :aria-label="`切换到第 ${index + 1} 张图片`"
-            ></button>
+            <button v-for="(slide,index) in images" :key="index"
+              @click="currentIndex=index"
+              :class="index===currentIndex?'active':''"
+              :aria-label="`切换到第 ${index+1} 张图片`"></button>
           </div>
         </div>
       </section>
 
-      <!-- 检索区域 -->
-      <section class="search-container">
-        <div class="search-wrapper">
-          <input
-            v-model="searchQuery"
-            type="text"
-            placeholder="搜索内容..."
-            class="search-input"
-            @keyup.enter="handleSearch"
-          />
-          <button 
-            @click="handleSearch"
-            class="search-btn"
-            aria-label="搜索"
-          >
-            🔍
-          </button>
-        </div>
-      </section>
 
-      <!-- 卡片区 -->
+
+      <!-- 曲目卡片 -->
       <section class="cards-container">
         <h2 class="cards-title">曲目列表</h2>
-        
-        <!-- 加载状态 -->
+
         <div v-if="loading" class="loading-state">
           <div class="spinner"></div>
           <p>加载中...</p>
         </div>
-        
-        <!-- 错误状态 -->
+
         <div v-if="error" class="error-state">
           <p>加载失败: {{ error }}</p>
           <button @click="fetchTracks" class="retry-btn">重试</button>
         </div>
-        
-        <!-- 卡片网格 -->
+
         <div v-else class="cards-grid">
-          <div
-            v-for="(track, index) in filteredTracks"
-            :key="track.id"
-            @click="openModal(track)"
-            class="card-item"
-          >
+          <div v-for="track in filteredTracks" :key="track.id" class="card-item" @click="openModal(track)">
             <div class="card-image-container">
-              <img 
-                :src="`https://th.bing.com/th/id/R.82829ff601dc35a40bff024762b8d9aa?rik=J%2fg71SJEy7g6iA&riu=http%3a%2f%2fwww.qb.gd.gov.cn%2fimg%2f0%2f14%2f14346%2f163451.jpg&ehk=XhU7kX4pjqcUfyjRCEYce3mlATPEvSTqAPAf7MmyxVQ%3d&risl=&pid=ImgRaw&r=0`" 
-                :alt="track.title"
-                class="card-image"
-              />
+              <img :src="track.cover" :alt="track.title" class="card-image" />
             </div>
             <div class="card-content">
               <h3 class="card-title">{{ track.title }}</h3>
-              <p class="card-description">{{ track.description.substring(0, 60) }}...</p>
+              <p class="card-description">{{ track.description.substring(0,60) }}...</p>
             </div>
           </div>
         </div>
@@ -107,86 +51,53 @@
 
     <!-- 模态框 -->
     <Teleport to="body">
-      <div 
-        v-if="selectedTrack" 
-        class="modal-overlay"
-        @click.self="closeModal"
-      >
+      <div v-if="selectedTrack" class="modal-overlay" @click.self="closeModal">
         <div class="modal-content">
           <button class="modal-close" @click="closeModal">×</button>
+
           <div class="modal-left">
-            <img 
-              :src="`https://th.bing.com/th/id/R.82829ff601dc35a40bff024762b8d9aa?rik=J%2fg71SJEy7g6iA&riu=http%3a%2f%2fwww.qb.gd.gov.cn%2fimg%2f0%2f14%2f14346%2f163451.jpg&ehk=XhU7kX4pjqcUfyjRCEYce3mlATPEvSTqAPAf7MmyxVQ%3d&risl=&pid=ImgRaw&r=0`" 
-              alt="曲目封面" 
-              class="modal-image"
-            />
-            <h3 class="modal-title">{{ selectedTrack.title }}</h3>
-            <p class="modal-description">{{ selectedTrack.description }}</p>
-            <!-- <div class="modal-meta">
-              <p>类型: {{ selectedTrack.media_type }}</p>
-              <p>木偶配置: {{ selectedTrack.puppet_config_id }}</p>
-              <p>动画格式: {{ selectedTrack.puppet_animation.format }}</p>
-            </div> -->
+            <img v-if="selectedTrack.cover" :src="selectedTrack.cover" :alt="selectedTrack.title" class="modal-image" />
+            <h3 class="modal-title">{{ selectedTrack.title || '加载中...' }}</h3>
+            <p class="modal-description">{{ selectedTrack.description || '' }}</p>
           </div>
+
           <div class="modal-right">
             <div class="video-container">
-              <!-- 矩形视频播放器 -->
               <div class="rectangular-player" :class="{ 'playing': isPlaying }">
-                <!-- 视频元素 -->
-                <video
-                  ref="videoPlayer"
-                  :src="selectedTrack.media_url"
+
+                <video v-if="selectedTrack.media_url" ref="videoPlayer" :src="selectedTrack.media_url"
                   class="video-element"
                   @loadedmetadata="onMetadataLoaded"
                   @timeupdate="onTimeUpdate"
-                  @ended="onVideoEnded"
-                >
+                  @ended="onVideoEnded">
                   您的浏览器不支持视频播放
                 </video>
 
-                <!-- 视频海报/播放覆盖层 -->
-                <div class="video-poster" v-if="!isPlaying && currentTime === 0">
-                  <img 
-                    :src="`/../src/assets/play${selectedTrack.id}.png`" 
-                    :alt="selectedTrack.title" 
-                    class="poster-img"
-                  >
-                  
-                  <!-- 大播放按钮 -->
-                  <button class="big-play-btn" @click="togglePlay">
-                    <span class="play-icon">▶</span>
-                  </button>
+                <audio v-if="selectedTrack.audio_url" ref="audioPlayer" :src="selectedTrack.audio_url"></audio>
+
+                <div class="video-poster" v-if="!isPlaying && currentTime===0">
+                  <img :src="selectedTrack.cover" :alt="selectedTrack.title" class="poster-img" />
+                  <button class="big-play-btn" @click="togglePlay"><span class="play-icon">▶</span></button>
                 </div>
 
-                <!-- 控制条 -->
                 <div class="video-controls">
                   <div class="progress-container" @click="setProgress">
                     <div class="progress-bar">
-                      <div class="progress-filled" :style="{ width: progress + '%' }"></div>
+                      <div class="progress-filled" :style="{ width: progress+'%' }"></div>
                     </div>
                   </div>
-                  
+
                   <div class="controls-group">
-                    <button class="control-btn play-pause-btn" @click="togglePlay">
-                      {{ isPlaying ? '⏸' : '▶' }}
-                    </button>
-                    
-                    <div class="time-display">
-                      {{ formatTime(currentTime) }} / {{ formatTime(duration) }}
-                    </div>
-                    
-                    <button class="control-btn volume-btn" @click="toggleMute">
-                      {{ isMuted ? '🔇' : '🔊' }}
-                    </button>
-                    
-                    <button class="control-btn fullscreen-btn" @click="toggleFullscreen">
-                      ⛶
-                    </button>
+                    <button class="control-btn play-pause-btn" @click="togglePlay">{{ isPlaying ? '⏸' : '▶' }}</button>
+                    <div class="time-display">{{ formatTime(currentTime) }} / {{ formatTime(duration) }}</div>
+                    <button class="control-btn volume-btn" @click="toggleMute">{{ isMuted ? '🔇' : '🔊' }}</button>
+                    <button class="control-btn fullscreen-btn" @click="toggleFullscreen">⛶</button>
                   </div>
                 </div>
               </div>
             </div>
           </div>
+
         </div>
       </div>
     </Teleport>
@@ -194,241 +105,168 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, computed } from "vue";
+import { ref, onMounted, onUnmounted, computed } from 'vue'
+import axios from 'axios'
 
-// 轮播图数据
-const images = [
-  "/../src/assets/play0.png",
-  "/../src/assets/play1.png",
-  "/../src/assets/play.png"
-];
-const currentIndex = ref(0);
-const currentImage = ref(images[0]);
-const slideInterval = ref(null);
+const images = ['/../src/assets/play0.png','/../src/assets/play1.png','/../src/assets/play.png']
+const currentIndex = ref(0)
+const currentImage = ref(images[0])
+const slideInterval = ref(null)
 
-// 搜索功能
-const searchQuery = ref("");
+const searchQuery = ref('')
 
-// 曲目数据
-const loading = ref(false);
-const error = ref(null);
+const loading = ref(false)
+const error = ref(null)
+const tracks = ref([])
+const selectedTrack = ref(null)
 
+const videoPlayer = ref(null)
+const audioPlayer = ref(null)
+const isPlaying = ref(false)
+const isMuted = ref(false)
+const progress = ref(0)
+const currentTime = ref(0)
+const duration = ref(0)
 
-// 假设tracks是你的曲目列表
-const tracks = ref([]);
-const selectedTrack = ref(null);
-
-// 根据选中的曲目计算对应的图片索引（0、1、2...）
-const imageIndex = computed(() => {
-  if (!selectedTrack.value) return 0;
-  
-// 方法1：根据曲目在列表中的索引匹配（推荐）
-const index = tracks.value.findIndex(track => track.id === selectedTrack.value.id);
-return index >= 0 ? index : 0; // 如果没找到，默认用play0.png
-});
-
-// 视频控制状态
-const videoPlayer = ref(null);
-const isPlaying = ref(false);
-const isMuted = ref(false);
-const progress = ref(0);
-const currentTime = ref(0);
-const duration = ref(0);
-
-// 从API获取曲目数据
+// 获取曲目列表
 const fetchTracks = async () => {
   try {
-    loading.value = true;
-    error.value = null;
-    
-    // 实际项目中替换为你的API地址
-    // const response = await fetch('/api/tracks');
-    // if (!response.ok) throw new Error('网络响应不正常');
-    // tracks.value = await response.json();
-    
-    // 模拟API数据
-    tracks.value = [
-      {
-        "id": "track_001",
-        "title": "木偶奇遇记",
-        "description": "一段关于木偶成长与冒险的故事，讲述了一个木偶男孩如何通过一系列奇遇学会诚实、勇敢和善良的品质。",
-        "media_type": "video",
-        "media_url": "/../src/assets/男1唱戏.mp4",
-      },
-      {
-        "id": "track_002",
-        "title": "冼夫人练兵",
-        "description": "冼夫人练兵木偶戏是广东高州等地流传的传统木偶戏剧目之一，以岭南历史名人冼夫人为题材。剧目表现了冼夫人为保境安民、团结部族而操练兵马的情景，既展现了她的智慧与胆略，也寄托了百姓对英雄人物的敬仰。表演中通过木偶的动作、唱腔和锣鼓点，生动再现了军营练兵的热烈场面，兼具教育意义和艺术观赏性，是岭南地方戏曲与民间传说相结合的代表作品。",
-        "media_type": "video",
-        "media_url": "/../src/assets/女1唱戏.mp4",
-        "puppet_config_id": "puppet_swan",
-        "puppet_animation": {
-          "format": "lottie",
-          "url": "https://cdn.example.com/puppets/puppet_swan_animation.json"
-        }
-      },
-      {
-        "id": "track_003",
-        "title": "狮子王",
-        "description": "关于成长与责任的经典故事，年轻的狮子辛巴在经历了父亲去世的挫折后，最终回归并夺回属于自己的王国。",
-        "media_type": "video",
-        "media_url": "https://storage.googleapis.com/web-dev-assets/video-and-source-tags/chrome.mp4",
-        "puppet_config_id": "puppet_lion",
-        "puppet_animation": {
-          "format": "lottie",
-          "url": "https://cdn.example.com/puppets/puppet_lion_animation.json"
-        }
-      },
-      {
-        "id": "track_004",
-        "title": "冰雪奇缘",
-        "description": "讲述拥有冰雪魔法的艾莎公主和她的妹妹安娜的冒险故事，强调真爱与自我接纳的重要性。",
-        "media_type": "video",
-        "media_url": "https://storage.googleapis.com/web-dev-assets/video-and-source-tags/chrome.mp4",
-        "puppet_config_id": "puppet_ice",
-        "puppet_animation": {
-          "format": "lottie",
-          "url": "https://cdn.example.com/puppets/puppet_ice_animation.json"
-        }
-      }
-    ];
-  } catch (err) {
-    error.value = err.message;
-    console.error('获取曲目数据失败:', err);
+    loading.value = true
+    error.value = null
+    const res = await axios.get('http://8.134.51.50:6060/api/v1/media/list',{
+      headers: { 'Content-Type':'application/json', 'Authorization': localStorage.getItem("cookie")||'' }
+    })
+    if(res.data.code===200 && Array.isArray(res.data.data.items)){
+      tracks.value = res.data.data.items.map(item=>({
+        id:item.id,
+        title:item.title,
+        description:item.description,
+        cover:item.cover,
+        media_type:item.media_type,
+        media_url:item.video_url||item.audio_url,
+        audio_url:item.audio_url
+      }))
+    }
+  } catch(err){
+    error.value = err.message
   } finally {
-    loading.value = false;
+    loading.value = false
   }
-};
+}
 
-// 过滤后的曲目列表
-const filteredTracks = computed(() => {
-  if (!searchQuery.value) return tracks.value;
-  
-  const query = searchQuery.value.toLowerCase();
-  return tracks.value.filter(track => 
-    track.title.toLowerCase().includes(query) || 
-    track.description.toLowerCase().includes(query)
-  );
-});
+const filteredTracks = computed(()=>{
+  if(!searchQuery.value) return tracks.value
+  const q = searchQuery.value.toLowerCase()
+  return tracks.value.filter(track=>track.title.toLowerCase().includes(q)||track.description.toLowerCase().includes(q))
+})
 
-// 轮播图控制
-const prevSlide = () => {
-  currentIndex.value = (currentIndex.value - 1 + images.length) % images.length;
-  currentImage.value = images[currentIndex.value];
-};
+const prevSlide = () => { currentIndex.value=(currentIndex.value-1+images.length)%images.length; currentImage.value=images[currentIndex.value] }
+const nextSlide = () => { currentIndex.value=(currentIndex.value+1)%images.length; currentImage.value=images[currentIndex.value] }
+onMounted(()=>{
+  slideInterval.value=setInterval(nextSlide,5000)
+  fetchTracks()
+})
+onUnmounted(()=>{if(slideInterval.value) clearInterval(slideInterval.value)})
 
-const nextSlide = () => {
-  currentIndex.value = (currentIndex.value + 1) % images.length;
-  currentImage.value = images[currentIndex.value];
-};
+const handleSearch = ()=>{ console.log('搜索',searchQuery.value) }
 
-// 自动轮播
-onMounted(() => {
-  slideInterval.value = setInterval(nextSlide, 5000);
-  fetchTracks(); // 页面加载时获取曲目数据
-});
-
-// 清除定时器
-onUnmounted(() => {
-  if (slideInterval.value) clearInterval(slideInterval.value);
-});
-
-// 搜索处理
-const handleSearch = () => {
-  console.log(`搜索: ${searchQuery.value}`);
-};
-
-// 打开模态框
-const openModal = (track) => {
-  selectedTrack.value = track;
-  // 重置视频状态
-  isPlaying.value = false;
-  progress.value = 0;
-  currentTime.value = 0;
-  duration.value = 0;
-  
-  // 确保视频重新加载
-  if (videoPlayer.value) {
-    videoPlayer.value.pause();
-    videoPlayer.value.currentTime = 0;
+// 打开模态框并请求详细信息
+const openModal = async (track)=>{
+  selectedTrack.value = null
+  loading.value = true
+  try{
+    const res = await axios.get(`http://8.134.51.50:6060/api/v1/media/info/${track.id}`,{
+      headers:{ 'Content-Type':'application/json', 'Authorization': localStorage.getItem("cookie")||'' }
+    })
+    if(res.data.code===200 && res.data.data){
+      const item=res.data.data
+      selectedTrack.value = {
+        id:item.id,
+        title:item.title,
+        description:item.description,
+        cover:item.cover,
+        media_type:item.media_type,
+        media_url:item.video_url||item.audio_url,
+        audio_url:item.audio_url
+      }
+      // 重置播放状态
+      isPlaying.value=false
+      progress.value=0
+      currentTime.value=0
+      duration.value=0
+      if(videoPlayer.value) { videoPlayer.value.pause(); videoPlayer.value.currentTime=0 }
+      if(audioPlayer.value) { audioPlayer.value.pause(); audioPlayer.value.currentTime=0 }
+    }
+  }catch(err){
+    error.value = err.message
+  }finally{
+    loading.value=false
   }
-};
+}
 
-// 关闭模态框
-const closeModal = () => {
-  if (videoPlayer.value) {
-    videoPlayer.value.pause();
-    isPlaying.value = false;
+const closeModal=()=>{
+  if(videoPlayer.value) videoPlayer.value.pause()
+  if(audioPlayer.value) audioPlayer.value.pause()
+  isPlaying.value=false
+  selectedTrack.value=null
+}
+
+const togglePlay=()=>{
+  const video = videoPlayer.value
+  const audio = audioPlayer.value
+  if(!video && !audio) return
+  if(isPlaying.value){ video?.pause(); audio?.pause() } else { video?.play(); audio?.play() }
+  isPlaying.value=!isPlaying.value
+}
+
+const toggleMute=()=>{
+  const video = videoPlayer.value
+  const audio = audioPlayer.value
+  if(!video && !audio) return
+  const newMuted = !(video?.muted || audio?.muted)
+  if(video) video.muted=newMuted
+  if(audio) audio.muted=newMuted
+  isMuted.value=newMuted
+}
+
+const setProgress=(e)=>{
+  const video = videoPlayer.value
+  const audio = audioPlayer.value
+  if(!video) return
+  const rect = e.currentTarget.getBoundingClientRect()
+  const pos=(e.clientX-rect.left)/rect.width
+  const newTime=pos*duration.value
+  video.currentTime=newTime
+  if(audio) audio.currentTime=newTime
+}
+
+const onTimeUpdate=()=>{
+  const video = videoPlayer.value
+  if(video){
+    currentTime.value=video.currentTime
+    progress.value=(currentTime.value/duration.value)*100
   }
-  selectedTrack.value = null;
-};
+}
 
-// 视频控制方法
-const togglePlay = () => {
-  if (!videoPlayer.value) return;
-  
-  if (isPlaying.value) {
-    videoPlayer.value.pause();
-  } else {
-    videoPlayer.value.play();
-  }
-  isPlaying.value = !isPlaying.value;
-};
+const onVideoEnded=()=>{
+  isPlaying.value=false
+  currentTime.value=0
+  progress.value=0
+}
 
-const toggleMute = () => {
-  if (!videoPlayer.value) return;
-  
-  videoPlayer.value.muted = !videoPlayer.value.muted;
-  isMuted.value = videoPlayer.value.muted;
-};
+const onMetadataLoaded=()=>{ if(videoPlayer.value) duration.value=videoPlayer.value.duration }
 
-const setProgress = (e) => {
-  if (!videoPlayer.value) return;
-  
-  const rect = e.currentTarget.getBoundingClientRect();
-  const pos = (e.clientX - rect.left) / rect.width;
-  videoPlayer.value.currentTime = pos * videoPlayer.value.duration;
-};
+const formatTime=(sec)=>{
+  const m=Math.floor(sec/60).toString().padStart(2,'0')
+  const s=Math.floor(sec%60).toString().padStart(2,'0')
+  return `${m}:${s}`
+}
 
-const toggleFullscreen = () => {
-  const playerContainer = document.querySelector('.video-container');
-  if (!document.fullscreenElement) {
-    playerContainer.requestFullscreen().catch(err => {
-      console.error(`全屏错误: ${err.message}`);
-    });
-  } else {
-    document.exitFullscreen();
-  }
-};
-
-// 格式化时间为 MM:SS 格式
-const formatTime = (seconds) => {
-  if (isNaN(seconds)) return "00:00";
-  
-  const mins = Math.floor(seconds / 60);
-  const secs = Math.floor(seconds % 60);
-  return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-};
-
-// 视频事件处理
-const onMetadataLoaded = () => {
-  if (videoPlayer.value) {
-    duration.value = videoPlayer.value.duration;
-  }
-};
-
-const onTimeUpdate = () => {
-  if (videoPlayer.value) {
-    currentTime.value = videoPlayer.value.currentTime;
-    progress.value = (currentTime.value / duration.value) * 100;
-  }
-};
-
-const onVideoEnded = () => {
-  isPlaying.value = false;
-  currentTime.value = 0;
-  progress.value = 0;
-};
+const toggleFullscreen=()=>{
+  const videoContainer = videoPlayer.value?.parentElement
+  if(!videoContainer) return
+  if(document.fullscreenElement){ document.exitFullscreen() } else { videoContainer.requestFullscreen() }
+}
 </script>
 
 <style>
