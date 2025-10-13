@@ -86,6 +86,7 @@ export default {
           {name: '服装3',component_id:"3", src: '../src/assets/冼夫人衣服.png',description:"你的自定义木偶：）"}
         ]
       },
+      
       selectedParts: {
         // hat_id: '',
         // head_id: '',
@@ -93,6 +94,12 @@ export default {
       },
       isImageChanging: false
     }
+  },
+  computed: {
+    // 从localStorage获取存储在cookie键下的token
+    authToken() {
+      return localStorage.getItem("cookie") || '';
+    },
   },
   methods: {
     hoverTab(tab) {
@@ -148,14 +155,10 @@ export default {
     formData.append('clothes_id', this.selectedParts.clothes_id || '');
 
     const response = await axios.post(
-      'http://8.134.51.50:6060/api/v1/puppet/combine_and_upload',
-      formData,
-      {
-        headers: {
-          'Authorization': `bearer ${this.getAuthToken()}`
-        }
-      }
-    );
+    'http://8.134.51.50:6060/api/v1/puppet/combine_and_upload',
+    formData,
+    { headers: { Authorization: this.authToken } }
+  );
 
     // 处理响应
     if (response.data.code === 200) {
@@ -186,12 +189,6 @@ export default {
   }
 },
     
-    // 新增：获取权限令牌的方法
-    getAuthToken() {
-      // 目前使用组件内的authToken，实际项目中建议从store或localStorage获取
-      this.authToken='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOiIxIiwicm9sZSI6ImFkbWluIiwiZW1haWwiOiIxMzQzMzEyNjc0MkAxNjMuY29tIiwic3RhdHVzIjoiYWN0aXZlIiwiZXhwIjoxNzU5MDMyMDAxfQ.FMLPv3rRETijhkRKqfmPDSPoNOA7e2UDq0wXLorJesE'
-      return this.authToken;
-    },
     
     // 修改：重置方法（同时重置选中的部件）
     resetDoll() {
