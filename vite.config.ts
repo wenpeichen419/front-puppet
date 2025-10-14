@@ -29,8 +29,8 @@ export default defineConfig({
     //     rewrite: (path) => path.replace(/^\/api/, ''),  // 移除路径中的 /api 前缀（如果后端接口没有 /api）
     //     // 示例：前端请求 /api/v1/chat_ask → 实际请求 http://8.134.51.50:6060/v1/chat_ask
     //   }
-    // }
-    host: '0.0.0.0',
+    // },
+    host: '0.0.0.0', 
     port: 5173,
   }
 })
