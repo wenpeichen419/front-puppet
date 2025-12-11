@@ -11,6 +11,9 @@
         </div>
         <button type="submit" class="login-button">登录</button>
       </form>
+      <div class="register-link">
+        <a @click="goToRegister">没有账号？点击注册</a>
+      </div>
     </div>
     <div class="curtain left"></div>
     <div class="curtain right"></div>
@@ -25,6 +28,10 @@ import { ElMessage } from 'element-plus';
 const username = ref('');
 const password = ref('');
 const router = useRouter();
+
+const goToRegister = () => {
+  router.push('/register');
+};
 
 const handleLogin = () => {
   console.log('Username:', username.value);
@@ -158,6 +165,22 @@ const handleLogin = () => {
 
 .login-button:active {
   transform: translateY(0);
+}
+
+.register-link {
+  text-align: right;
+  margin-top: 15px;
+  font-size: 14px;
+}
+
+.register-link a {
+  color: #8c3823;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.register-link a:hover {
+  text-decoration: underline;
 }
 
 .curtain {
